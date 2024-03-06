@@ -1,4 +1,4 @@
-# fly.toml app configuration file generated for mercado on 2024-02-26T09:31:56Z
+# fly.toml app configuration file generated for mercado on 2024-03-05T11:08:39Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
@@ -7,13 +7,14 @@ app = 'mercado'
 primary_region = 'mad'
 
 [build]
+  [build.args]
+    GO_VERSION = '1.22'
 
-[[mounts]]
-  source = 'data'
-  destination = '/data'
+[env]
+  PORT = '8080'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
@@ -24,3 +25,8 @@ primary_region = 'mad'
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
+
+
+[mounts]
+  source="data"
+  destination="/data"

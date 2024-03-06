@@ -1,0 +1,86 @@
+{{ define "main" }}
+
+<span class="error-message block text-rose-500 empty:hidden p-4"></span>
+
+<form
+    id="add-form"
+    hx-target="#expenses-list"
+    hx-post="/"
+    hx-swap="beforeend"
+    class="max-w-sm mx-auto p-4 bg-white shadow-md rounded-md"
+>
+    <div x-data="{ value: 0 }" class="mb-4">
+        <label for="value" class="block text-gray-700 text-sm font-bold mb-2"
+            >Valor</label
+        >
+        <input
+            id="value"
+            name="value"
+            placeholder="Valor"
+            type="text"
+            inputmode="decimal"
+            x-model="value"
+            :value="value"
+            @input="handleInputChange"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+        />
+    </div>
+    <div class="mb-4">
+        <label
+            for="grocery-store"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            >Mercado</label
+        >
+        <select
+            id="grocery-store"
+            name="grocery-store"
+            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500"
+        >
+            {{ range getGroceryStores }}
+            <option value="{{ . }}">{{ . }}</option>
+            {{ end }}
+        </select>
+    </div>
+    <button
+        type="submit"
+        class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+    >
+        Adicionar
+    </button>
+</form>
+
+<div class="mt-8" />
+
+<h2 class="text-xl font-bold mb-4 px-4">Despesas</h2>
+
+<ul id="expenses-list">
+    {{ range .Expenses }} {{ template "expense-list-item" . }} {{ else }}
+    <li>Nenhuma despesa (ainda)</li>
+    {{ end }}
+</ul>
+
+<script>
+    document.addEventListener("htmx:afterRequest", function (e) {
+        if (e.detail.successful) {
+            const form = document.querySelector("#add-form");
+            form.reset();
+        }
+    });
+
+    function formatCurrency(inputValue) {
+        const numericValue = inputValue.replace(/\D/g, "");
+        const decimalValue = Number(numericValue) / 100;
+        return decimalValue.toFixed(2);
+    }
+
+    function handleInputChange(e) {
+        const value = e.target.value;
+        const numericValue = Number(value);
+        if (isNaN(numericValue)) {
+            return;
+        }
+
+        this.value = formatCurrency(value);
+    }
+</script>
+{{ end }}
