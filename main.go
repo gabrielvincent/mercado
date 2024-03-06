@@ -32,11 +32,17 @@ func main() {
 			}
 
 			cookie, err := c.Cookie("password")
-			password := strings.ToLower(cookie.Value)
-			if err != nil ||
-				!utils.Contains(authRoutes.PASSWORDS, password) {
-				return c.Redirect(http.StatusTemporaryRedirect, "/login")
+
+			if err != nil || cookie.Value == "" {
+				return c.Redirect(http.StatusFound, "/login")
 			}
+
+			password := strings.ToLower(cookie.Value)
+
+			if !utils.Contains(authRoutes.PASSWORDS, password) {
+				return c.Redirect(http.StatusFound, "/login")
+			}
+
 			return next(c)
 		}
 	})

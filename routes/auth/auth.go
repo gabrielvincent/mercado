@@ -45,12 +45,10 @@ func renderLoginPage(c echo.Context, errorMsg string) error {
 	)
 }
 
-// route: GET /login
 func Index(c echo.Context) error {
 	return renderLoginPage(c, "")
 }
 
-// route: POST /login
 func Login(c echo.Context) error {
 	password := c.Request().FormValue("password")
 
@@ -65,6 +63,5 @@ func Login(c echo.Context) error {
 	cookie.Path = "/"
 	c.SetCookie(cookie)
 
-	// Redirect to the home page
 	return c.Redirect(http.StatusFound, "/")
 }
