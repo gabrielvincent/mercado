@@ -60,6 +60,7 @@ func Login(c echo.Context) error {
 	cookie := new(http.Cookie)
 	cookie.Name = "password"
 	cookie.Value = password
+	cookie.MaxAge = 60 * 60 * 24 * 365
 	cookie.Path = "/"
 	c.SetCookie(cookie)
 

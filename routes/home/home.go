@@ -32,9 +32,12 @@ var DB_URL = "libsql://mercado-gabrielvincent.turso.io?authToken=eyJhbGciOiJFZER
 var GROCERY_STORES = []string{
 	"Lidl",
 	"Pingo Doce",
+	"Minipreço",
+	"El Corte Inglés",
 	"Continente",
 	"Mercadona",
 	"Froiz",
+	"Aldi",
 }
 
 var PT_MONTHS = []string{
