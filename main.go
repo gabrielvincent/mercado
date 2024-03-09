@@ -11,7 +11,32 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+func validateEnv() {
+	var varsNotSet []string = []string{}
+	stage := os.Getenv("STAGE")
+	if stage == "" {
+		varsNotSet = append(varsNotSet, "STAGE")
+	}
+
+	if stage == "prod" {
+		tursoDBConnectionString := os.Getenv("TURSO_DB_CONNECTION_STRING")
+		if tursoDBConnectionString == "" {
+			varsNotSet = append(varsNotSet, "TURSO_DB_CONNECTION_STRING")
+		}
+	}
+
+	if len(varsNotSet) == 0 {
+		return
+	}
+
+	varsNotSetMsg := strings.Join(varsNotSet, ", ")
+
+	panic("Missing environment variables: " + varsNotSetMsg)
+}
+
 func main() {
+	validateEnv()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"

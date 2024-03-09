@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
+	authComponents "mercado/components/auth"
 	"mercado/utils"
 )
 
@@ -35,14 +36,7 @@ var PASSWORDS = []string{
 }
 
 func renderLoginPage(c echo.Context, errorMsg string) error {
-	return utils.RenderInLayout(
-		c,
-		"login",
-		map[string]interface{}{
-			"Error": errorMsg,
-		},
-		nil,
-	)
+	return utils.Render(c, http.StatusOK, authComponents.Index(errorMsg))
 }
 
 func Index(c echo.Context) error {

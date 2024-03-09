@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 )
 
@@ -37,6 +38,7 @@ func (t *Template) Render(
 	data interface{},
 	c echo.Context,
 ) error {
+
 	err := t.templates.ExecuteTemplate(w, name, data)
 	if err != nil {
 		// Log the error
@@ -57,7 +59,7 @@ func RenderInLayout(
 
 	allPaths := append(partials, name, "public/views/layout.html")
 
-	tmpl, err := template.New("").Funcs(customFuncs).ParseFiles(
+	tmpl, err := template.New(name).Funcs(customFuncs).ParseFiles(
 		allPaths...,
 	)
 
@@ -79,4 +81,10 @@ func RenderPartial(
 	data interface{},
 ) error {
 	return c.Render(http.StatusOK, partial, data)
+}
+
+func Render(ctx echo.Context, statusCode int, t templ.Component) error {
+	ctx.Response().Writer.WriteHeader(statusCode)
+	ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
+	return t.Render(ctx.Request().Context(), ctx.Response().Writer)
 }

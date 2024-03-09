@@ -1,0 +1,7 @@
+!.ignore
+!.air.toml
+!.eslintrc
+!.prettierrc
+!.dockerignore
+
+*_templ.go

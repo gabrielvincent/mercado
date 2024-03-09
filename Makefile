@@ -1,7 +1,22 @@
-build:
+build_templ:
+	~/go/bin/templ generate
+
+build_tailwindcss:
 	npx tailwindcss -i base.css -o public/css/tailwind.css --minify
+
+build: build_templ build_tailwindcss
 	go build main.go
 
-dev:
+watch_templ:
+	npx nodemon -e templ --exec "make build_templ"
+
+watch_tailwindcss:
+	npx tailwindcss -i base.css -o public/css/tailwind.css --watch
+
+watch_go:
 	~/go/bin/air
+
+dev: export STAGE=dev
+dev:
+	npx concurrently --kill-others --raw "make watch_tailwindcss" "make watch_templ" "make watch_go"
 	go run main.go

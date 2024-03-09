@@ -1,0 +1,93 @@
+package home
+
+import (
+	"mercado/components"
+	"mercado/models/home"
+)
+
+var GROCERY_STORES = []string{
+	"Lidl",
+	"Pingo Doce",
+	"Minipreço",
+	"El Corte Inglés",
+	"Continente",
+	"Mercadona",
+	"Froiz",
+	"Aldi",
+}
+
+templ Index(expenses []home.Expense) {
+	<script src="public/js/home.js"></script>
+	@components.Layout() {
+		<form
+			id="add-form"
+			hx-target="#expenses-list"
+			hx-post="/"
+			hx-swap="afterbegin"
+			x-data="
+        {
+            expenseValue: undefined,
+            adding: false,
+        }
+    "
+			x-init="handleFormInit"
+			class="sticky top-0 mx-auto max-w-sm rounded-md bg-white p-4 shadow-md"
+		>
+			<div class="mb-4">
+				<label for="value" class="mb-2 block text-sm font-bold text-gray-700">Valor</label>
+				<input
+					id="value"
+					name="value"
+					placeholder="É de quanto, é de quanto?"
+					type="text"
+					inputmode="decimal"
+					x-model="expenseValue"
+					:value="expenseValue"
+					@input="handleInputChange"
+					class="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
+				/>
+			</div>
+			<div class="mb-4">
+				<label for="grocery-store" class="mb-2 block text-sm font-bold text-gray-700">
+					Mercado
+				</label>
+				<select
+					id="grocery-store"
+					name="grocery-store"
+					class="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
+				>
+					for _, store := range GROCERY_STORES {
+						<option value={ store }>{ store }</option>
+					}
+				</select>
+			</div>
+			<button
+				id="add-button"
+				type="submit"
+				class="w-full rounded-md px-4 py-2 text-white transition duration-300"
+				:class="
+            {
+                'bg-blue-500 hover:bg-blue-700': expenseValue && !adding,
+                'bg-blue-200': !expenseValue,
+                'bg-gray-300': adding
+            }
+        "
+				:disabled="adding || !expenseValue"
+			>
+				<span x-show="adding">Registando...</span>
+				<span x-show="!adding">Registar</span>
+			</button>
+			<span class="error-message mt-4 block text-rose-500 empty:hidden"></span>
+		</form>
+		<div class="mt-8"></div>
+		<h2 class="mb-4 px-4 text-xl font-bold">Despesas</h2>
+		<ul id="expenses-list">
+			for _, expense := range expenses {
+				@ExpensesListItem(expense)
+			}
+			if len(expenses) == 0 {
+				<li class="px-4">Nenhuma despesa (ainda)</li>
+			}
+		</ul>
+	}
+}

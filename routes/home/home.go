@@ -4,30 +4,24 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	homeComponents "mercado/components/home"
+	model "mercado/models/home"
 	"mercado/utils"
 	htmx "mercado/utils/htmx"
 	"net/http"
+	"os"
 	"strconv"
-	"text/template"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	_ "github.com/mattn/go-sqlite3"
 	_ "github.com/tursodatabase/libsql-client-go/libsql"
 )
 
-type Expense struct {
-	ID           int
-	Value        int
-	GroceryStore string
-	Date         time.Time
-}
-
 type LayoutData struct {
-	Expenses      []Expense
+	Expenses      []model.Expense
 	GroceryStores []string
 }
-
-var DB_URL = "libsql://mercado-gabrielvincent.turso.io?authToken=eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3MDk2NTAzNjQsImlkIjoiYWMzNGNmNGUtZjgwYi00YTMyLTgyMTktMjcyNTJkMzcwZDMzIn0.h-ACyvyjzis-XbA4z_mnEySGfT0S0-Ark9QRe47-r6ovUdn3QkEA3l1AYcJCEK-6zUTQ66nAtL-zhR7jJ5GBCQ"
 
 var GROCERY_STORES = []string{
 	"Lidl",
@@ -55,6 +49,28 @@ var PT_MONTHS = []string{
 	"Dezembro",
 }
 
+func openDB() (*sql.DB, error) {
+
+	stage := os.Getenv("STAGE")
+	var dbURL string
+	var dbEngine string
+
+	if stage == "prod" {
+		dbURL = os.Getenv("TURSO_DB_CONNECTION_STRING")
+		dbEngine = "libsql"
+	}
+	if stage == "dev" {
+		dbURL = "./database.sqlite"
+		dbEngine = "sqlite3"
+	}
+
+	db, err := sql.Open(dbEngine, dbURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return db, err
+}
+
 func formatDate(date time.Time) string {
 
 	formatted := strconv.Itoa(
@@ -64,6 +80,16 @@ func formatDate(date time.Time) string {
 	)
 
 	return formatted
+}
+
+func parseDate(dateStr string) (time.Time, error) {
+	t, error := time.Parse("2006-01-02 15:04:05", dateStr)
+
+	if error != nil {
+		t, error = time.Parse("2006-01-02T15:04:05Z", dateStr)
+	}
+
+	return t, error
 }
 
 func getGroceryStores() []string {
@@ -86,7 +112,7 @@ func formatCurrency(value int) string {
 
 func Index(c echo.Context) error {
 
-	db, err := sql.Open("libsql", DB_URL)
+	db, err := openDB()
 	defer db.Close()
 
 	if err != nil {
@@ -105,7 +131,7 @@ func Index(c echo.Context) error {
 		return err
 	}
 
-	var expenses []Expense
+	var expenses []model.Expense
 	for rows.Next() {
 		var id int
 		var value int
@@ -117,14 +143,14 @@ func Index(c echo.Context) error {
 			log.Fatal(err)
 		}
 
-		date, error := time.Parse("2006-01-02 15:04:05", dateStr)
+		date, error := parseDate(dateStr)
 
 		if error != nil {
 			log.Fatal(error)
 			panic(error)
 		}
 
-		expenses = append(expenses, Expense{
+		expenses = append(expenses, model.Expense{
 			ID:           id,
 			Value:        value,
 			GroceryStore: groceryStore,
@@ -132,26 +158,14 @@ func Index(c echo.Context) error {
 		})
 	}
 
-	return utils.RenderInLayout(
-		c,
-		"home",
-		LayoutData{
-			Expenses:      expenses,
-			GroceryStores: GROCERY_STORES,
-		},
-		template.FuncMap{
-			"getGroceryStores": getGroceryStores,
-			"formatCurrency":   formatCurrency,
-			"formatDate":       formatDate,
-		},
-	)
+	return utils.Render(c, http.StatusOK, homeComponents.Index(expenses))
 }
 
 func AddExpense(c echo.Context) error {
 
 	setErrorHeaders := func() {
 		header := c.Response().Header()
-		htmx.Retarget(header, "previous span.error-message")
+		htmx.Retarget(header, "find span.error-message")
 		htmx.Reswap(header, "innerHTML")
 	}
 
@@ -183,7 +197,7 @@ func AddExpense(c echo.Context) error {
 		)
 	}
 
-	db, err := sql.Open("libsql", DB_URL)
+	db, err := openDB()
 	defer db.Close()
 
 	date := time.Now().In(time.UTC)
@@ -209,38 +223,17 @@ func AddExpense(c echo.Context) error {
 
 	id, _ := result.LastInsertId()
 
-	return utils.RenderPartial(
+	return utils.Render(
 		c,
-		"expense-list-item",
-		Expense{
+		http.StatusOK,
+		homeComponents.ExpensesListItem(model.Expense{
 			ID:           int(id),
 			Value:        int(value),
 			GroceryStore: groceryStore,
 			Date:         date,
-		},
+		}),
 	)
 
-}
-
-func DeleteExpense(c echo.Context) error {
-
-	expenseIDStr := c.Param("id")
-	expenseID, err := strconv.Atoi(expenseIDStr)
-	if err != nil {
-		return c.String(http.StatusOK, "Error!")
-	}
-
-	db, err := sql.Open("libsql", DB_URL)
-	defer db.Close()
-
-	result, err := db.Exec("DELETE FROM expenses WHERE id = ?", expenseID)
-	rowsAffected, err := result.RowsAffected()
-
-	if err != nil || rowsAffected == 0 {
-		return c.String(http.StatusOK, "Falha ao apagar!")
-	}
-
-	return c.NoContent(http.StatusOK)
 }
 
 func EditExpense(c echo.Context) error {
@@ -258,13 +251,12 @@ func EditExpense(c echo.Context) error {
 	}
 
 	if id == "" || err != nil {
-		log.Printf(`--- error: %v`, err)
 		return c.String(http.StatusOK, "Error!")
 	}
 
 	valueFloat = valueFloat * 100
 
-	db, err := sql.Open("libsql", DB_URL)
+	db, err := openDB()
 	defer db.Close()
 
 	result, err := db.Exec(
@@ -273,6 +265,11 @@ func EditExpense(c echo.Context) error {
 		groceryStore,
 		idInt,
 	)
+
+	if err != nil {
+		return c.String(http.StatusOK, "Error!")
+	}
+
 	rowsAffected, err := result.RowsAffected()
 
 	if err != nil || rowsAffected == 0 {
@@ -281,21 +278,45 @@ func EditExpense(c echo.Context) error {
 
 	rows, err := db.Query("SELECT date from expenses WHERE id = ?", idInt)
 	rows.Next()
+	defer rows.Close()
 
-	var date string
-	rows.Scan(&date)
+	var dateStr string
+	rows.Scan(&dateStr)
 
-	dateTime, _ := time.Parse("2006-01-02 15:04:05", date)
+	dateTime, _ := parseDate(dateStr)
 
-	return utils.RenderPartial(
+	expense := model.Expense{
+		ID:           idInt,
+		Value:        int(valueFloat),
+		GroceryStore: groceryStore,
+		Date:         dateTime,
+	}
+
+	return utils.Render(
 		c,
-		"expense-list-item",
-		Expense{
-			ID:           idInt,
-			Value:        int(valueFloat),
-			GroceryStore: groceryStore,
-			Date:         dateTime,
-		},
+		http.StatusOK,
+		homeComponents.ExpensesListItem(expense),
 	)
 
+}
+
+func DeleteExpense(c echo.Context) error {
+
+	expenseIDStr := c.Param("id")
+	expenseID, err := strconv.Atoi(expenseIDStr)
+	if err != nil {
+		return c.String(http.StatusOK, "Error!")
+	}
+
+	db, err := openDB()
+	defer db.Close()
+
+	result, err := db.Exec("DELETE FROM expenses WHERE id = ?", expenseID)
+	rowsAffected, err := result.RowsAffected()
+
+	if err != nil || rowsAffected == 0 {
+		return c.String(http.StatusOK, "Falha ao apagar!")
+	}
+
+	return c.NoContent(http.StatusOK)
 }
