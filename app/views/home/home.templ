@@ -1,8 +1,8 @@
 package home
 
 import (
-	"mercado/components"
-	"mercado/models/home"
+	l "mercado/app/views/layouts"
+	t "mercado/app/types/home"
 )
 
 var GROCERY_STORES = []string{
@@ -16,9 +16,9 @@ var GROCERY_STORES = []string{
 	"Aldi",
 }
 
-templ Index(expenses []home.Expense) {
+templ Index(expenses []t.Expense) {
 	<script src="public/js/home.js"></script>
-	@components.Layout() {
+	@l.Layout() {
 		<form
 			id="add-form"
 			hx-target="#expenses-list"

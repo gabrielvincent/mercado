@@ -10,7 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
-import "mercado/components"
+import components "mercado/app/views/layouts"
 
 func Index(errorMsg string) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
@@ -43,7 +43,7 @@ func Index(errorMsg string) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(errorMsg)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/auth/auth.templ`, Line: 15, Col: 17}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/auth/auth.templ`, Line: 15, Col: 17}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {

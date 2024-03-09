@@ -11,12 +11,13 @@ import "io"
 import "bytes"
 
 import (
-	"mercado/models/home"
+	h "mercado/app/helpers/home"
+	t "mercado/app/types/home"
 	stringsUtils "mercado/utils/strings"
 	"strconv"
 )
 
-func ExpensesListItem(expense home.Expense) templ.Component {
+func ExpensesListItem(expense t.Expense) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {
@@ -29,7 +30,7 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>\n        function formatCurrency(inputValue) {\n            const numericValue = inputValue.replace(/\\D/g, \"\");\n            const decimalValue = Number(numericValue) / 100;\n            return decimalValue.toFixed(2);\n        }\n\n        function handleEdit(e) {\n            this.editing = true;\n\n            const parentLi = e.target.closest(\"li\");\n            const input = parentLi.querySelector(\"input\");\n\n            setTimeout(() => {\n                input.value = formatCurrency(input.value);\n                input.focus();\n                input.setSelectionRange(0, input.value.length);\n            }, 0);\n        }\n\n        function handleDelete(e) {\n            const parentLi = e.target.closest(\"li\");\n            const dialog = parentLi.querySelector(\"dialog\");\n\n            dialog.showModal();\n        }\n\n        function handleCancelDelete(e) {\n            const parentLi = e.target.closest(\"li\");\n            const dialog = parentLi.querySelector(\"dialog\");\n            dialog.close();\n        }\n    </script><li class=\"expense-list-item p-4 mb-4 rounded shadow-md\" x-data=\"{ editing: false }\"><dialog class=\"rounded\"><div class=\"p-8\"><h3>Certzinha que quer deletar isso?</h3><div class=\"flex items-center space-x-6 mt-3\"><button @click=\"handleCancelDelete\" class=\"text-blue-500 p-2\">Melhor não</button> <button class=\"text-red-500 p-2\" hx-delete=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script type=\"text/javascript\">\n        function formatCurrency(inputValue) {\n            const numericValue = inputValue.replace(/\\D/g, \"\");\n            const decimalValue = Number(numericValue) / 100;\n            return decimalValue.toFixed(2);\n        }\n\n        function handleEdit(e) {\n            this.editing = true;\n\n            const parentLi = e.target.closest(\"li\");\n            const input = parentLi.querySelector(\"input\");\n\n            setTimeout(() => {\n                input.value = formatCurrency(input.value);\n                input.focus();\n                input.setSelectionRange(0, input.value.length);\n            }, 0);\n        }\n\n        function handleDelete(e) {\n            const parentLi = e.target.closest(\"li\");\n            const dialog = parentLi.querySelector(\"dialog\");\n\n            dialog.showModal();\n        }\n\n        function handleCancelDelete(e) {\n            const parentLi = e.target.closest(\"li\");\n            const dialog = parentLi.querySelector(\"dialog\");\n            dialog.close();\n        }\n    </script><li class=\"expense-list-item p-4 mb-4 rounded shadow-md\" x-data=\"{ editing: false }\"><dialog class=\"rounded\"><div class=\"p-8\"><h3>Certzinha que quer deletar isso?</h3><div class=\"flex items-center space-x-6 mt-3\"><button @click=\"handleCancelDelete\" class=\"text-blue-500 p-2\">Melhor não</button> <button class=\"text-red-500 p-2\" hx-delete=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -44,7 +45,7 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(stringsUtils.FormatCurrency(expense.Value))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/home/expenses_list_item.templ`, Line: 67, Col: 85}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/expenses_list_item.templ`, Line: 68, Col: 85}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -57,7 +58,7 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(expense.GroceryStore)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/home/expenses_list_item.templ`, Line: 68, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/expenses_list_item.templ`, Line: 69, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -68,9 +69,9 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(home.FormatDate(expense.Date))
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(h.FormatDate(expense.Date))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/home/expenses_list_item.templ`, Line: 70, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/expenses_list_item.templ`, Line: 71, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -88,11 +89,11 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(`{ value: "` + strconv.Itoa(expense.Value) + `" }`))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(`{expenseValue : "` + strconv.Itoa(expense.Value) + `" }`))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><input name=\"value\" @input=\"handleInputChange\" x-model=\"value\" x-bind=\"{\n                              type: &#39;text&#39;,\n                              inputMode: &#39;decimal&#39;,\n                              value: value,\n                            }\" class=\"w-full border border-gray-300 px-2 py-1 rounded\"><div class=\"mt-2\"><select name=\"grocery-store\" class=\"w-full border border-gray-300 px-2 py-1 rounded\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><input name=\"value\" @input=\"handleInputChange\" x-model=\"expenseValue\" type=\"text\" inputmode=\"decimal\" class=\"w-full border border-gray-300 px-2 py-1 rounded\"><div class=\"mt-2\"><select name=\"grocery-store\" class=\"w-full border border-gray-300 px-2 py-1 rounded\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -113,7 +114,7 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(store)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/home/expenses_list_item.templ`, Line: 126, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/expenses_list_item.templ`, Line: 124, Col: 50}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -139,7 +140,7 @@ func ExpensesListItem(expense home.Expense) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(store)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/home/expenses_list_item.templ`, Line: 128, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/expenses_list_item.templ`, Line: 126, Col: 41}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {

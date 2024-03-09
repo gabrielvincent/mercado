@@ -1,11 +1,11 @@
-package routes
+package home
 
 import (
 	"database/sql"
 	"fmt"
 	"log"
-	homeComponents "mercado/components/home"
-	model "mercado/models/home"
+	t "mercado/app/types/home"
+	v "mercado/app/views/home"
 	"mercado/utils"
 	htmx "mercado/utils/htmx"
 	"net/http"
@@ -19,7 +19,7 @@ import (
 )
 
 type LayoutData struct {
-	Expenses      []model.Expense
+	Expenses      []t.Expense
 	GroceryStores []string
 }
 
@@ -131,7 +131,7 @@ func Index(c echo.Context) error {
 		return err
 	}
 
-	var expenses []model.Expense
+	var expenses []t.Expense
 	for rows.Next() {
 		var id int
 		var value int
@@ -150,7 +150,7 @@ func Index(c echo.Context) error {
 			panic(error)
 		}
 
-		expenses = append(expenses, model.Expense{
+		expenses = append(expenses, t.Expense{
 			ID:           id,
 			Value:        value,
 			GroceryStore: groceryStore,
@@ -158,7 +158,7 @@ func Index(c echo.Context) error {
 		})
 	}
 
-	return utils.Render(c, http.StatusOK, homeComponents.Index(expenses))
+	return utils.Render(c, http.StatusOK, v.Index(expenses))
 }
 
 func AddExpense(c echo.Context) error {
@@ -226,7 +226,7 @@ func AddExpense(c echo.Context) error {
 	return utils.Render(
 		c,
 		http.StatusOK,
-		homeComponents.ExpensesListItem(model.Expense{
+		v.ExpensesListItem(t.Expense{
 			ID:           int(id),
 			Value:        int(value),
 			GroceryStore: groceryStore,
@@ -241,7 +241,16 @@ func EditExpense(c echo.Context) error {
 	value := c.Request().FormValue("value")
 	groceryStore := c.Request().FormValue("grocery-store")
 	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		log.Printf(`--- error converting id to int: %v`, err)
+		return c.String(http.StatusOK, "Error!")
+	}
+
 	valueFloat, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		log.Printf(`--- error value to float: %v`, err)
+		return c.String(http.StatusOK, "Error!")
+	}
 
 	if !validateGroceryStore(groceryStore) {
 		return c.String(
@@ -251,6 +260,7 @@ func EditExpense(c echo.Context) error {
 	}
 
 	if id == "" || err != nil {
+		log.Printf(`--- invalid id: %v`, id)
 		return c.String(http.StatusOK, "Error!")
 	}
 
@@ -285,7 +295,7 @@ func EditExpense(c echo.Context) error {
 
 	dateTime, _ := parseDate(dateStr)
 
-	expense := model.Expense{
+	expense := t.Expense{
 		ID:           idInt,
 		Value:        int(valueFloat),
 		GroceryStore: groceryStore,
@@ -295,7 +305,7 @@ func EditExpense(c echo.Context) error {
 	return utils.Render(
 		c,
 		http.StatusOK,
-		homeComponents.ExpensesListItem(expense),
+		v.ExpensesListItem(expense),
 	)
 
 }

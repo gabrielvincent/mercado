@@ -1,8 +1,8 @@
 package main
 
 import (
-	authRoutes "mercado/routes/auth"
-	homeRoutes "mercado/routes/home"
+	authRoutes "mercado/app/controllers/auth"
+	homeRoutes "mercado/app/controllers/home"
 	"mercado/utils"
 	"net/http"
 	"os"

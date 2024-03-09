@@ -1,13 +1,14 @@
 package home
 
 import (
-	"mercado/models/home"
+	h "mercado/app/helpers/home"
+	t "mercado/app/types/home"
 	stringsUtils "mercado/utils/strings"
 	"strconv"
 )
 
-templ ExpensesListItem(expense home.Expense) {
-	<script>
+templ ExpensesListItem(expense t.Expense) {
+	<script type="text/javascript">
         function formatCurrency(inputValue) {
             const numericValue = inputValue.replace(/\D/g, "");
             const decimalValue = Number(numericValue) / 100;
@@ -68,7 +69,7 @@ templ ExpensesListItem(expense home.Expense) {
 					<span class="text-lg font-semibold">{ stringsUtils.FormatCurrency(expense.Value) }</span>
 					<div class="text-gray-600">{ expense.GroceryStore }</div>
 				</div>
-				<span class="text-xs">{ home.FormatDate(expense.Date) }</span>
+				<span class="text-xs">{ h.FormatDate(expense.Date) }</span>
 			</div>
 			<div class="flex space-x-4 items-center">
 				<button @click="handleEdit" class="ml-auto text-blue-500">
@@ -105,16 +106,13 @@ templ ExpensesListItem(expense home.Expense) {
 					<label htmlFor="value" class="block text-sm font-medium mb-1">
 						Valor
 					</label>
-					<div x-data={ `{ value: "` + strconv.Itoa(expense.Value) + `" }` }>
+					<div x-data={ `{expenseValue : "` + strconv.Itoa(expense.Value) + `" }` }>
 						<input
 							name="value"
 							@input="handleInputChange"
-							x-model="value"
-							x-bind="{
-                              type: 'text',
-                              inputMode: 'decimal',
-                              value: value,
-                            }"
+							x-model="expenseValue"
+							type="text"
+							inputmode="decimal"
 							class="w-full border border-gray-300 px-2 py-1 rounded"
 						/>
 						<div class="mt-2">
