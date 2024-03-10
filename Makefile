@@ -20,3 +20,6 @@ dev: export STAGE=dev
 dev:
 	npx concurrently --kill-others --raw "make watch_tailwindcss" "make watch_templ" "make watch_go"
 	go run main.go
+
+debug:
+	dlv attach $$(pgrep mercado)
