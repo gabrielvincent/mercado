@@ -1,0 +1,35 @@
+package home
+
+var GROCERY_STORES = []string{
+	"Aldi",
+	"Continente",
+	"El Corte Inglés",
+	"Froiz",
+	"Lidl",
+	"Mercadona",
+	"Minipreço",
+	"Padaria",
+	"Pingo Doce",
+}
+
+templ GroceryStoreSelector(selected string, showHeader bool) {
+	<label for="grocery-store" class="mb-2 block text-sm font-bold text-gray-700">
+		Mercado
+	</label>
+	<select
+		id="grocery-store"
+		name="grocery-store"
+		class="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
+	>
+		if showHeader {
+			<option value="">Tá em ordem alfabética 👇</option>
+		}
+		for _, store := range GROCERY_STORES {
+			if selected == store {
+				<option value={ store } selected>{ store }</option>
+			} else {
+				<option value={ store }>{ store }</option>
+			}
+		}
+	</select>
+}

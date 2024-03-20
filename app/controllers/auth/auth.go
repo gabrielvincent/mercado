@@ -13,6 +13,7 @@ var PASSWORDS = []string{
 	"piá",
 	"pia",
 	"piazote",
+	"piazin",
 	"nilda",
 	"nildas",
 	"valentina",

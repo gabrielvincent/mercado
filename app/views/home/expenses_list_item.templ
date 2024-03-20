@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+var showGroceryStoreSelectorHeader = false
+
 templ ExpensesListItem(expense t.Expense) {
 	<script type="text/javascript">
         function formatCurrency(inputValue) {
@@ -116,18 +118,7 @@ templ ExpensesListItem(expense t.Expense) {
 							class="w-full border border-gray-300 px-2 py-1 rounded"
 						/>
 						<div class="mt-2">
-							<select
-								name="grocery-store"
-								class="w-full border border-gray-300 px-2 py-1 rounded"
-							>
-								for _, store := range GROCERY_STORES {
-									if store == expense.GroceryStore {
-										<option value={ store } selected>{ store }</option>
-									} else {
-										<option value={ store }>{ store }</option>
-									}
-								}
-							</select>
+							@GroceryStoreSelector(expense.GroceryStore, showGroceryStoreSelectorHeader)
 						</div>
 					</div>
 				</span>

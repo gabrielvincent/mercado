@@ -23,17 +23,6 @@ type LayoutData struct {
 	GroceryStores []string
 }
 
-var GROCERY_STORES = []string{
-	"Lidl",
-	"Pingo Doce",
-	"Minipreço",
-	"El Corte Inglés",
-	"Continente",
-	"Mercadona",
-	"Froiz",
-	"Aldi",
-}
-
 var PT_MONTHS = []string{
 	"Janeiro",
 	"Fevereiro",
@@ -92,12 +81,8 @@ func parseDate(dateStr string) (time.Time, error) {
 	return t, error
 }
 
-func getGroceryStores() []string {
-	return GROCERY_STORES
-}
-
 func validateGroceryStore(groceryStore string) bool {
-	return utils.Contains(GROCERY_STORES, groceryStore)
+	return utils.Contains(v.GROCERY_STORES, groceryStore)
 }
 
 func formatCurrency(value int) string {
@@ -191,10 +176,16 @@ func AddExpense(c echo.Context) error {
 	}
 
 	if !validateGroceryStore(groceryStore) {
-		return c.String(
-			http.StatusOK,
-			"Nome de mercado inválido: "+groceryStore,
-		)
+		var msg string
+
+		if groceryStore == "" {
+			setErrorHeaders()
+			msg = "Véi, seleciona um mercado 😤"
+		} else {
+			msg = "Nome de mercado inválido: " + groceryStore
+		}
+
+		return c.String(http.StatusOK, msg)
 	}
 
 	db, err := openDB()
