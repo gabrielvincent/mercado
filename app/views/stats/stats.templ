@@ -14,12 +14,18 @@ func daysInMonth(year, month int) int {
 
 func calcExpensesAvg(expenses []expense.Expense) float64 {
 
+	total := calcTotalExpenses(expenses)
+	return float64(total) / float64(len(expenses))
+}
+
+func calcTotalExpenses(expenses []expense.Expense) int {
+
 	total := 0
 	for _, expense := range expenses {
 		total += expense.Value
 	}
 
-	return float64(total) / float64(len(expenses))
+	return total
 }
 
 templ DailyAverage(month string, average float64) {
@@ -28,6 +34,9 @@ templ DailyAverage(month string, average float64) {
 
 templ Index(expenses []expense.Expense) {
 	@l.Layout() {
+		<div>
+			Total gasto: <span class="font-bold">{ stringsUtils.FormatCurrency(calcTotalExpenses(expenses)) }</span>
+		</div>
 		<div>
 			@DailyAverage("THE_MONTH", calcExpensesAvg(expenses))
 		</div>

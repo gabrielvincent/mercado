@@ -24,12 +24,18 @@ func daysInMonth(year, month int) int {
 
 func calcExpensesAvg(expenses []expense.Expense) float64 {
 
+	total := calcTotalExpenses(expenses)
+	return float64(total) / float64(len(expenses))
+}
+
+func calcTotalExpenses(expenses []expense.Expense) int {
+
 	total := 0
 	for _, expense := range expenses {
 		total += expense.Value
 	}
 
-	return float64(total) / float64(len(expenses))
+	return total
 }
 
 func DailyAverage(month string, average float64) templ.Component {
@@ -52,7 +58,7 @@ func DailyAverage(month string, average float64) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(stringsUtils.FormatCurrency(int(average)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/stats/stats.templ`, Line: 25, Col: 106}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/stats/stats.templ`, Line: 31, Col: 106}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -88,7 +94,20 @@ func Index(expenses []expense.Expense) templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div>Total gasto: <span class=\"font-bold\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var5 string
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(stringsUtils.FormatCurrency(calcTotalExpenses(expenses)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/stats/stats.templ`, Line: 37, Col: 98}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></div><div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
