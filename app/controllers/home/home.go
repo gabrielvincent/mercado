@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	t "mercado/app/types/home"
+	expense "mercado/app/models/expense"
 	v "mercado/app/views/home"
 	"mercado/utils"
 	htmx "mercado/utils/htmx"
@@ -19,7 +19,7 @@ import (
 )
 
 type LayoutData struct {
-	Expenses      []t.Expense
+	Expenses      []expense.Expense
 	GroceryStores []string
 }
 
@@ -95,52 +95,42 @@ func formatCurrency(value int) string {
 	return "€" + strconv.Itoa(whole) + "," + paddedDecimal
 }
 
+func getFirstDayOfCurrentMonth() time.Time {
+	now := time.Now()
+	return time.Date(
+		now.Year(),
+		now.Month(),
+		1,
+		0,
+		0,
+		0,
+		0,
+		now.UTC().Location(),
+	)
+}
+
+func getLastDayOfCurrentMonth() time.Time {
+	now := time.Now()
+	return time.Date(
+		now.Year(),
+		now.Month()+1,
+		0,
+		23,
+		59,
+		59,
+		0,
+		now.UTC().Location(),
+	)
+}
+
 func Index(c echo.Context) error {
 
-	db, err := openDB()
-	defer db.Close()
+	startDate := getFirstDayOfCurrentMonth()
+	endDate := getLastDayOfCurrentMonth()
+	expenses, err := expense.GetExpenses(startDate, endDate)
 
 	if err != nil {
 		return err
-	}
-
-	rows, err := db.Query(`
-        SELECT *
-        FROM expenses
-        WHERE strftime('%Y-%m', date) = strftime('%Y-%m', 'now')
-        ORDER BY date DESC;
-    `)
-	defer rows.Close()
-
-	if err != nil {
-		return err
-	}
-
-	var expenses []t.Expense
-	for rows.Next() {
-		var id int
-		var value int
-		var groceryStore string
-		var dateStr string
-
-		err := rows.Scan(&id, &value, &groceryStore, &dateStr)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		date, error := parseDate(dateStr)
-
-		if error != nil {
-			log.Fatal(error)
-			panic(error)
-		}
-
-		expenses = append(expenses, t.Expense{
-			ID:           id,
-			Value:        value,
-			GroceryStore: groceryStore,
-			Date:         date,
-		})
 	}
 
 	return utils.Render(c, http.StatusOK, v.Index(expenses))
@@ -217,7 +207,7 @@ func AddExpense(c echo.Context) error {
 	return utils.Render(
 		c,
 		http.StatusOK,
-		v.ExpensesListItem(t.Expense{
+		v.ExpensesListItem(expense.Expense{
 			ID:           int(id),
 			Value:        int(value),
 			GroceryStore: groceryStore,
@@ -286,7 +276,7 @@ func EditExpense(c echo.Context) error {
 
 	dateTime, _ := parseDate(dateStr)
 
-	expense := t.Expense{
+	expense := expense.Expense{
 		ID:           idInt,
 		Value:        int(valueFloat),
 		GroceryStore: groceryStore,

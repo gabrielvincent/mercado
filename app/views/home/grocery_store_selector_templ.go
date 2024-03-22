@@ -20,6 +20,7 @@ var GROCERY_STORES = []string{
 	"Minipreço",
 	"Padaria",
 	"Pingo Doce",
+	"Pomar",
 }
 
 func GroceryStoreSelector(selected string, showHeader bool) templ.Component {
@@ -62,7 +63,7 @@ func GroceryStoreSelector(selected string, showHeader bool) templ.Component {
 				var templ_7745c5c3_Var2 string
 				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(store)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/grocery_store_selector.templ`, Line: 28, Col: 44}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/grocery_store_selector.templ`, Line: 29, Col: 44}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 				if templ_7745c5c3_Err != nil {
@@ -88,7 +89,7 @@ func GroceryStoreSelector(selected string, showHeader bool) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(store)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/grocery_store_selector.templ`, Line: 30, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/home/grocery_store_selector.templ`, Line: 31, Col: 35}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {

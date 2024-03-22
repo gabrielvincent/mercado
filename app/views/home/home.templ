@@ -2,10 +2,10 @@ package home
 
 import (
 	l "mercado/app/views/layouts"
-	t "mercado/app/types/home"
+	expense "mercado/app/models/expense"
 )
 
-templ Index(expenses []t.Expense) {
+templ Index(expenses []expense.Expense) {
 	<script src="public/js/home.js"></script>
 	@l.Layout() {
 		<form

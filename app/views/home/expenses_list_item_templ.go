@@ -12,14 +12,14 @@ import "bytes"
 
 import (
 	h "mercado/app/helpers/home"
-	t "mercado/app/types/home"
+	expense "mercado/app/models/expense"
 	stringsUtils "mercado/utils/strings"
 	"strconv"
 )
 
 var showGroceryStoreSelectorHeader = false
 
-func ExpensesListItem(expense t.Expense) templ.Component {
+func ExpensesListItem(expense expense.Expense) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 		if !templ_7745c5c3_IsBuffer {

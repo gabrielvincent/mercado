@@ -3,6 +3,7 @@ package main
 import (
 	authRoutes "mercado/app/controllers/auth"
 	homeRoutes "mercado/app/controllers/home"
+	statsRoutes "mercado/app/controllers/stats"
 	"mercado/utils"
 	"net/http"
 	"os"
@@ -91,6 +92,8 @@ func main() {
 
 	e.GET("/login", authRoutes.Index)
 	e.POST("/login", authRoutes.Login)
+
+	e.GET("/numeros", statsRoutes.Index)
 
 	e.Static("/public", "public")
 

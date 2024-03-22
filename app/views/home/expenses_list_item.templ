@@ -2,14 +2,14 @@ package home
 
 import (
 	h "mercado/app/helpers/home"
-	t "mercado/app/types/home"
+	expense "mercado/app/models/expense"
 	stringsUtils "mercado/utils/strings"
 	"strconv"
 )
 
 var showGroceryStoreSelectorHeader = false
 
-templ ExpensesListItem(expense t.Expense) {
+templ ExpensesListItem(expense expense.Expense) {
 	<script type="text/javascript">
         function formatCurrency(inputValue) {
             const numericValue = inputValue.replace(/\D/g, "");

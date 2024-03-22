@@ -1,0 +1,35 @@
+package stats
+
+import (
+	l "mercado/app/views/layouts"
+	stringsUtils "mercado/utils/strings"
+	expense "mercado/app/models/expense"
+	"time"
+)
+
+func daysInMonth(year, month int) int {
+	lastDay := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC).Day()
+	return lastDay
+}
+
+func calcExpensesAvg(expenses []expense.Expense) float64 {
+
+	total := 0
+	for _, expense := range expenses {
+		total += expense.Value
+	}
+
+	return float64(total) / float64(len(expenses))
+}
+
+templ DailyAverage(month string, average float64) {
+	<div>Gasto médio por ida ao mercado: <span class="font-bold">{ stringsUtils.FormatCurrency(int(average)) }</span></div>
+}
+
+templ Index(expenses []expense.Expense) {
+	@l.Layout() {
+		<div>
+			@DailyAverage("THE_MONTH", calcExpensesAvg(expenses))
+		</div>
+	}
+}
