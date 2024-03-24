@@ -82,7 +82,7 @@ func parseDate(dateStr string) (time.Time, error) {
 }
 
 func validateGroceryStore(groceryStore string) bool {
-	return utils.Contains(v.GROCERY_STORES, groceryStore)
+	return utils.Contains(expense.GROCERY_STORES, groceryStore)
 }
 
 func formatCurrency(value int) string {
@@ -133,7 +133,7 @@ func Index(c echo.Context) error {
 		return err
 	}
 
-	return utils.Render(c, http.StatusOK, v.Index(expenses))
+	return utils.Render(c, http.StatusOK, v.Index(expenses), nil)
 }
 
 func AddExpense(c echo.Context) error {
@@ -213,6 +213,7 @@ func AddExpense(c echo.Context) error {
 			GroceryStore: groceryStore,
 			Date:         date,
 		}),
+		nil,
 	)
 
 }
@@ -287,6 +288,7 @@ func EditExpense(c echo.Context) error {
 		c,
 		http.StatusOK,
 		v.ExpensesListItem(expense),
+		nil,
 	)
 
 }

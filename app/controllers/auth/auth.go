@@ -37,7 +37,7 @@ var PASSWORDS = []string{
 }
 
 func renderLoginPage(c echo.Context, errorMsg string) error {
-	return utils.Render(c, http.StatusOK, v.Index(errorMsg))
+	return utils.Render(c, http.StatusOK, v.Index(errorMsg), nil)
 }
 
 func Index(c echo.Context) error {

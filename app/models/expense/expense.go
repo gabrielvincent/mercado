@@ -8,6 +8,38 @@ import (
 	"time"
 )
 
+var GROCERY_STORES = []string{
+	"Aldi",
+	"Continente",
+	"El Corte Inglés",
+	"Froiz",
+	"Lidl",
+	"Mercadona",
+	"Minipreço",
+	"Padaria",
+	"Pingo Doce",
+	"Pomar",
+}
+
+type Expense struct {
+	ID           int
+	Value        int
+	GroceryStore string
+	Date         time.Time
+}
+
+type GroceryStoresRankingItem struct {
+	GroceryStore string
+	Sessions     int
+}
+
+type PreviousMonthCompareInfo struct {
+	Sessions                           int
+	Total                              int
+	CompareTotalPercent                float64
+	CompareGroceryStoreSessionsPercent float64
+}
+
 func openDB() (*sql.DB, error) {
 
 	stage := os.Getenv("STAGE")
@@ -40,11 +72,19 @@ func parseDate(dateStr string) (time.Time, error) {
 	return t, error
 }
 
-type Expense struct {
-	ID           int
-	Value        int
-	GroceryStore string
-	Date         time.Time
+func CalcAvg(expenses []Expense) float64 {
+
+	total := CalcTotal(expenses)
+	return float64(total) / float64(len(expenses))
+}
+
+func CalcTotal(expenses []Expense) int {
+	total := 0
+	for _, expense := range expenses {
+		total += expense.Value
+	}
+
+	return total
 }
 
 func GetExpenses(startDate time.Time, endDate time.Time) ([]Expense, error) {

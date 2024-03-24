@@ -1,17 +1,8 @@
 package home
 
-var GROCERY_STORES = []string{
-	"Aldi",
-	"Continente",
-	"El Corte Inglés",
-	"Froiz",
-	"Lidl",
-	"Mercadona",
-	"Minipreço",
-	"Padaria",
-	"Pingo Doce",
-	"Pomar",
-}
+import (
+	expense "mercado/app/models/expense"
+)
 
 templ GroceryStoreSelector(selected string, showHeader bool) {
 	<label for="grocery-store" class="mb-2 block text-sm font-bold text-gray-700">
@@ -20,12 +11,12 @@ templ GroceryStoreSelector(selected string, showHeader bool) {
 	<select
 		id="grocery-store"
 		name="grocery-store"
-		class="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
+		class="w-full rounded-md border px-3 h-11 focus:border-blue-500 focus:outline-none"
 	>
 		if showHeader {
 			<option value="">Tá em ordem alfabética 👇</option>
 		}
-		for _, store := range GROCERY_STORES {
+		for _, store := range expense.GROCERY_STORES {
 			if selected == store {
 				<option value={ store } selected>{ store }</option>
 			} else {

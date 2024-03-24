@@ -5,10 +5,10 @@ build_tailwindcss:
 	npx tailwindcss -i base.css -o public/css/tailwind.css --minify
 
 build: build_templ build_tailwindcss
-	go build main.go
+	go build -o mercado main.go
 
 watch_templ:
-	npx nodemon -e templ --exec "make build_templ"
+	templ generate --watch
 
 watch_tailwindcss:
 	npx tailwindcss -i base.css -o public/css/tailwind.css --watch

@@ -5,6 +5,7 @@ import (
 	stringsUtils "mercado/utils/strings"
 	expense "mercado/app/models/expense"
 	"time"
+	"strconv"
 )
 
 func daysInMonth(year, month int) int {
@@ -12,33 +13,149 @@ func daysInMonth(year, month int) int {
 	return lastDay
 }
 
-func calcExpensesAvg(expenses []expense.Expense) float64 {
-
-	total := calcTotalExpenses(expenses)
-	return float64(total) / float64(len(expenses))
+func getCurrentDayOfMonth() int {
+	now := time.Now()
+	return now.Day()
 }
 
-func calcTotalExpenses(expenses []expense.Expense) int {
+templ Semibold() {
+	<span class="font-semibold">
+		{ children... }
+	</span>
+}
 
-	total := 0
-	for _, expense := range expenses {
-		total += expense.Value
+templ Currency(value int) {
+	@Semibold() {
+		{ stringsUtils.FormatCurrency(value) }
 	}
-
-	return total
 }
 
-templ DailyAverage(month string, average float64) {
-	<div>Gasto médio por ida ao mercado: <span class="font-bold">{ stringsUtils.FormatCurrency(int(average)) }</span></div>
+templ PreviousMonthCompare(info *expense.PreviousMonthCompareInfo) {
+	<span>A essa altura, no mês passado, você tinha gastado</span>
+	{ " " }@Currency(info.Total) {
+	"."
+}
 }
 
-templ Index(expenses []expense.Expense) {
+templ Sessions(expenses []expense.Expense, info *expense.PreviousMonthCompareInfo, day int) {
+	Você já foi ao mercado
+	{ " " }@Semibold() {
+	{  strconv.Itoa(len(expenses)) }
+}
+	{ " " }
+	vezes esse mês.
+	if info != nil {
+		{ " " }No mês passado, até o dia <span class="font-semibold">{ strconv.Itoa(day) }</span>, tinham sido <span class="font-semibold">{ strconv.Itoa(info.Sessions) }</span> idas ao mercado.
+	}
+}
+
+var isFirst = true
+
+templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
+	O mercado que você mais visitou foi o
+	{ " " }@Semibold() {
+	{ ranking[0].GroceryStore }
+}
+	{ "." }
+	Você lá esteve
+	{ " " }@Semibold() {
+	{ strconv.Itoa(ranking[0].Sessions) }
+}
+	{ " " }vezes. O ranking é esse aqui:
+	<div class="mt-2 p-3 bg-gray-100 rounded-lg">
+		for i, item := range ranking {
+			<div class="flex items-center gap-2">
+				<span>
+					switch i {
+						case 0:
+							🥇
+						case 1:
+							🥈
+						case 2:
+							🥉
+						case 3:
+							4️⃣
+						case 4:
+							5️⃣
+						case 5:
+							6️⃣
+						case 6:
+							7️⃣
+						case 7:
+							8️⃣
+						case 8:
+							9️⃣
+						case 9:
+							🔟
+						default:
+							{ "- " }
+					}
+				</span>
+				<div class="w-full flex items-center justify-between">
+					<span
+						class={ "font-semibold",
+                            templ.KV("text-amber-400", i == 0),
+                            templ.KV("text-stone-400", i == 1),
+                            templ.KV("text-orange-400", i == 2) }
+					>
+						{ item.GroceryStore }
+					</span>
+					<span>
+						({ strconv.Itoa(item.Sessions) }
+						if item.Sessions > 1 {
+							{ " " }visitas)
+						} else {
+							{ " " }visita)
+						}
+					</span>
+				</div>
+			</div>
+		}
+	</div>
+}
+
+templ Index(
+	expenses []expense.Expense,
+	prevMonthCompareInfo *expense.PreviousMonthCompareInfo,
+	groceryStoresRanking []expense.GroceryStoresRankingItem,
+) {
 	@l.Layout() {
-		<div>
-			Total gasto: <span class="font-bold">{ stringsUtils.FormatCurrency(calcTotalExpenses(expenses)) }</span>
-		</div>
-		<div>
-			@DailyAverage("THE_MONTH", calcExpensesAvg(expenses))
+		<div class="p-4">
+			<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
+			<p>
+				hoje é o 
+				<span class="font-semibold">{ strconv.Itoa(getCurrentDayOfMonth()) }º</span>
+				dia do mês e você já gastou
+				<span class="font-semibold">
+					@Currency(expense.CalcTotal(expenses))
+				</span>.
+				Até agora, você gastou em média 
+				@Currency(int(expense.CalcAvg(expenses)))
+				{ " " }a cada ida ao mercado (foram já <span class="font-semibold">{ strconv.Itoa(len(expenses)) }</span>
+				if len(expenses) > 1 {
+					vezes,
+				} else {
+					vez,
+				}
+				uma média de
+				<span class="font-semibold">{ strconv.FormatFloat(float64(len(expenses)) / float64(getCurrentDayOfMonth()) , 'f', 2, 64) }</span>
+				idas ao mercado por dia, o que dá uma média de
+				<span class="font-semibold">
+					@Currency(int(float64(expense.CalcTotal(expenses)) / float64(getCurrentDayOfMonth())))
+				</span> gastos por dia!)
+				Você acha bonita uma coisa dessas?
+			</p>
+			if prevMonthCompareInfo != nil {
+				<p class="mt-4">
+					@PreviousMonthCompare(prevMonthCompareInfo)
+				</p>
+			}
+			<p class="mt-4">
+				@Sessions(expenses, prevMonthCompareInfo, getCurrentDayOfMonth())
+			</p>
+			<p class="mt-4">
+				@GroceryStoresRanking(groceryStoresRanking)
+			</p>
 		</div>
 	}
 }

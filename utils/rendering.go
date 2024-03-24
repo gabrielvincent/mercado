@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"path/filepath"
@@ -83,8 +84,18 @@ func RenderPartial(
 	return c.Render(http.StatusOK, partial, data)
 }
 
-func Render(ctx echo.Context, statusCode int, t templ.Component) error {
-	ctx.Response().Writer.WriteHeader(statusCode)
-	ctx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
-	return t.Render(ctx.Request().Context(), ctx.Response().Writer)
+func Render(
+	echoCtx echo.Context,
+	statusCode int,
+	t templ.Component,
+	ctx context.Context,
+) error {
+	echoCtx.Response().Writer.WriteHeader(statusCode)
+	echoCtx.Response().Header().Set(echo.HeaderContentType, echo.MIMETextHTML)
+
+	if ctx == nil {
+		ctx = echoCtx.Request().Context()
+	}
+
+	return t.Render(ctx, echoCtx.Response().Writer)
 }
