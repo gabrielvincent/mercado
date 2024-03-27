@@ -1,5 +1,15 @@
 package components
 
+script deferLoader() {
+    window.loadDeferredComponent = function loadDeferredComponent(id) {
+        const deferredComponent = document.querySelector(`div[data-defer-id='${id}']`);
+        const parentDeferredComponent = deferredComponent.parentElement;
+        const loadedComponent = document.querySelector(`div[data-defer-id='${id}'][data-defer-completed='true']`);
+
+        parentDeferredComponent.replaceChild(loadedComponent, deferredComponent);
+    }
+}
+
 templ Layout() {
 	<!DOCTYPE html>
 	<html>
@@ -20,6 +30,7 @@ templ Layout() {
 			<main>
 				{ children... }
 			</main>
+			@deferLoader()
 		</body>
 	</html>
 }

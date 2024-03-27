@@ -10,6 +10,22 @@ import "context"
 import "io"
 import "bytes"
 
+func deferLoader() templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_deferLoader_265b`,
+		Function: `function __templ_deferLoader_265b(){window.loadDeferredComponent = function loadDeferredComponent(id) {
+        const deferredComponent = document.querySelector(` + "`" + `div[data-defer-id='${id}']` + "`" + `);
+        const parentDeferredComponent = deferredComponent.parentElement;
+        const loadedComponent = document.querySelector(` + "`" + `div[data-defer-id='${id}'][data-defer-completed='true']` + "`" + `);
+
+        parentDeferredComponent.replaceChild(loadedComponent, deferredComponent);
+    }
+}`,
+		Call:       templ.SafeScript(`__templ_deferLoader_265b`),
+		CallInline: templ.SafeScriptInline(`__templ_deferLoader_265b`),
+	}
+}
+
 func Layout() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
@@ -32,6 +48,14 @@ func Layout() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 2)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = deferLoader().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templ.WriteWatchModeString(templ_7745c5c3_Buffer, 3)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

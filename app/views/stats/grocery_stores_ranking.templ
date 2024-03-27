@@ -1,0 +1,28 @@
+package stats
+
+templ RenderGroceryStoresRanking(message string, loading bool, deferId string) {
+	<div
+		defer-id={ deferId }
+		class="w-full flex flex-col items-center justify-between gap-2 p-3 bg-gray-100 rounded-lg"
+	>
+		if loading {
+			Loading...
+		} else {
+			<div hx-get={ "/" + deferId }>{ message }</div>
+			<div>Item 1</div>
+			<div>Item 2</div>
+		}
+	</div>
+}
+
+func GroceryStoresRankingMock(message string, loading bool) templ.Component {
+	var deferId string
+
+	if loading {
+		deferId = "grocery_stores_ranking_templ_loading"
+	} else {
+		deferId = "grocery_stores_ranking_templ_loaded"
+	}
+
+	return RenderGroceryStoresRanking(message, loading, deferId)
+}

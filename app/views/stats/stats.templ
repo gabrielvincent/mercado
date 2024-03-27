@@ -51,76 +51,94 @@ templ Sessions(expenses []expense.Expense, info *expense.PreviousMonthCompareInf
 
 var isFirst = true
 
+script loadDeferred(id string) {
+    loadDeferredComponent(id)
+}
+
+templ DeferredComponent(id string, completed bool, children ...any) {
+	<div
+		data-defer-id={ id }
+		data-defer-completed={ strconv.FormatBool(completed) }
+	>
+		{ children... }
+	</div>
+	@loadDeferred(id)
+}
+
 templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
-	O mercado que você mais visitou foi o
-	{ " " }@Semibold() {
+	@DeferredComponent("grocery-stores-ranking", true) {
+		O mercado que você mais visitou foi o
+		{ " " }@Semibold() {
 	{ ranking[0].GroceryStore }
 }
-	{ "." }
-	Você lá esteve
-	{ " " }@Semibold() {
+		{ "." }
+		Você lá esteve
+		{ " " }@Semibold() {
 	{ strconv.Itoa(ranking[0].Sessions) }
 }
-	{ " " }vezes. O ranking é esse aqui:
-	<div class="mt-2 p-3 bg-gray-100 rounded-lg">
-		for i, item := range ranking {
-			<div class="flex items-center gap-2">
-				<span>
-					switch i {
-						case 0:
-							🥇
-						case 1:
-							🥈
-						case 2:
-							🥉
-						case 3:
-							4️⃣
-						case 4:
-							5️⃣
-						case 5:
-							6️⃣
-						case 6:
-							7️⃣
-						case 7:
-							8️⃣
-						case 8:
-							9️⃣
-						case 9:
-							🔟
-						default:
-							{ "- " }
-					}
-				</span>
-				<div class="w-full flex items-center justify-between">
-					<span
-						class={ "font-semibold",
+		{ " " }vezes. O ranking é esse aqui:
+		<div
+			class="mt-2 p-3 bg-gray-100 rounded-lg"
+		>
+			for i, item := range ranking {
+				<div class="flex items-center gap-2">
+					<span>
+						switch i {
+							case 0:
+								🥇
+							case 1:
+								🥈
+							case 2:
+								🥉
+							case 3:
+								4️⃣
+							case 4:
+								5️⃣
+							case 5:
+								6️⃣
+							case 6:
+								7️⃣
+							case 7:
+								8️⃣
+							case 8:
+								9️⃣
+							case 9:
+								🔟
+							default:
+								{ "- " }
+						}
+					</span>
+					<div class="w-full flex items-center justify-between">
+						<span
+							class={ "font-semibold",
                             templ.KV("text-amber-400", i == 0),
                             templ.KV("text-stone-400", i == 1),
                             templ.KV("text-orange-400", i == 2) }
-					>
-						{ item.GroceryStore }
-					</span>
-					<span>
-						({ strconv.Itoa(item.Sessions) }
-						if item.Sessions > 1 {
-							{ " " }visitas)
-						} else {
-							{ " " }visita)
-						}
-					</span>
+						>
+							{ item.GroceryStore }
+						</span>
+						<span>
+							({ strconv.Itoa(item.Sessions) }
+							if item.Sessions > 1 {
+								{ " " }visitas)
+							} else {
+								{ " " }visita)
+							}
+						</span>
+					</div>
 				</div>
-			</div>
-		}
-	</div>
+			}
+		</div>
+	}
 }
 
 templ Index(
 	expenses []expense.Expense,
 	prevMonthCompareInfo *expense.PreviousMonthCompareInfo,
-	groceryStoresRanking []expense.GroceryStoresRankingItem,
 ) {
 	@l.Layout() {
 		<div class="p-4">
+			<button onclick="alert('Click me!')">Click me!</button>
 			<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
 			<p>
 				hoje é o 
@@ -154,7 +172,15 @@ templ Index(
 				@Sessions(expenses, prevMonthCompareInfo, getCurrentDayOfMonth())
 			</p>
 			<p class="mt-4">
-				@GroceryStoresRanking(groceryStoresRanking)
+				<div data-defer-id="grocery-stores-ranking">
+					O mercado que você mais visitou foi o ---. Você lá esteve --- vezes. O ranking é esse aqui:
+					<div class="w-full flex flex-col justify-between gap-2 p-3 bg-gray-100 rounded-lg">
+						<div>Loading...</div>
+						<div>---</div>
+						<div>------</div>
+						<div>----</div>
+					</div>
+				</div>
 			</p>
 		</div>
 	}

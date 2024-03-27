@@ -10,6 +10,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 )
 
@@ -151,14 +152,13 @@ func Index(c echo.Context) error {
 		return err
 	}
 
-	groceryStoresRanking := getGroceryStoresRanking(expenses)
 	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses)
 	if err != nil {
 		if err == NO_EXPENSES_ERR {
 			return utils.Render(
 				c,
 				http.StatusOK,
-				v.Index(expenses, nil, groceryStoresRanking),
+				v.Index(expenses, nil),
 				nil,
 			)
 		}
@@ -167,10 +167,19 @@ func Index(c echo.Context) error {
 
 	ctx := context.WithValue(c.Request().Context(), "name", "Gastão")
 
-	return utils.Render(
+	// TODO: Create a type to encapsulate multiple async components
+	channel := make(chan templ.Component)
+	go func() {
+		time.Sleep(2 * time.Second) // Simulate async operation
+		ranking := getGroceryStoresRanking(expenses)
+		channel <- v.GroceryStoresRanking(ranking)
+	}()
+
+	return utils.RenderAsync(
 		c,
 		http.StatusOK,
-		v.Index(expenses, prevMonthCompareInfo, groceryStoresRanking),
+		v.Index(expenses, prevMonthCompareInfo),
 		ctx,
+		channel,
 	)
 }

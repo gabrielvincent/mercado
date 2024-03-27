@@ -7,8 +7,14 @@ Você já foi ao mercado
 No mês passado, até o dia <span class=\"font-semibold\">
 </span>, tinham sido <span class=\"font-semibold\">
 </span> idas ao mercado.
+<div data-defer-id=\"
+\" data-defer-completed=\"
+\">
+</div>
 O mercado que você mais visitou foi o 
+ 
  Você lá esteve 
+ 
 vezes. O ranking é esse aqui:<div class=\"mt-2 p-3 bg-gray-100 rounded-lg\">
 <div class=\"flex items-center gap-2\"><span>
 🥇
@@ -30,7 +36,7 @@ visitas)
 visita)
 </span></div></div>
 </div>
-<div class=\"p-4\"><h1 class=\"font-bold text-lg mb-4\">Olá, 
+<div class=\"p-4\"><button onclick=\"alert(&#39;Click me!&#39;)\">Click me!</button><h1 class=\"font-bold text-lg mb-4\">Olá, 
 ,</h1><p>hoje é o  <span class=\"font-semibold\">
 º</span> dia do mês e você já gastou <span class=\"font-semibold\">
 </span>. Até agora, você gastou em média 
@@ -44,5 +50,4 @@ uma média de <span class=\"font-semibold\">
 <p class=\"mt-4\">
 </p>
 <p class=\"mt-4\">
-</p><p class=\"mt-4\">
-</p></div>
+</p><p class=\"mt-4\"><div data-defer-id=\"grocery-stores-ranking\">O mercado que você mais visitou foi o ---. Você lá esteve --- vezes. O ranking é esse aqui:<div class=\"w-full flex flex-col justify-between gap-2 p-3 bg-gray-100 rounded-lg\"><div>Loading...</div><div>---</div><div>------</div><div>----</div></div></div></p></div>
