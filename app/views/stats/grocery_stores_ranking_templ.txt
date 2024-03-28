@@ -1,7 +1,0 @@
-<div defer-id=\"
-\" class=\"w-full flex flex-col items-center justify-between gap-2 p-3 bg-gray-100 rounded-lg\">
-Loading...
-<div hx-get=\"
-\">
-</div><div>Item 1</div><div>Item 2</div>
-</div>

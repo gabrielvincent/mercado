@@ -11,10 +11,10 @@ primary_region = 'mad'
     GO_VERSION = '1.22'
 
 [env]
-  PORT = '8080'
+  PORT = '3000'
 
 [http_service]
-  internal_port = 8080
+  internal_port = 3000
   force_https = true
   auto_stop_machines = true
   auto_start_machines = true
@@ -22,7 +22,7 @@ primary_region = 'mad'
   processes = ['app']
 
 [[vm]]
-  memory = '1gb'
+  memory = '512M'
   cpu_kind = 'shared'
   cpus = 1
 

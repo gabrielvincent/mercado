@@ -1,9 +1,0 @@
-<label for=\"grocery-store\" class=\"mb-2 block text-sm font-bold text-gray-700\">Mercado</label> <select id=\"grocery-store\" name=\"grocery-store\" class=\"w-full rounded-md border px-3 h-11 focus:border-blue-500 focus:outline-none\">
-<option value=\"\">Tá em ordem alfabética 👇</option> 
-<option value=\"
-\" selected>
-</option>
-<option value=\"
-\">
-</option>
-</select>

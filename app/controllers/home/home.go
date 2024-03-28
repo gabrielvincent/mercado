@@ -53,9 +53,18 @@ func openDB() (*sql.DB, error) {
 		dbEngine = "sqlite3"
 	}
 
+	fmt.Println(
+		"--- will open db with url: ",
+		dbURL,
+		" and engine: ",
+		dbEngine,
+		" in stage: ",
+		stage,
+	)
+
 	db, err := sql.Open(dbEngine, dbURL)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf(`--- error opening db: %v`, err)
 	}
 	return db, err
 }
@@ -130,6 +139,7 @@ func Index(c echo.Context) error {
 	expenses, err := expense.GetExpenses(startDate, endDate)
 
 	if err != nil {
+		fmt.Println("--- error getting expenses: ", err)
 		return err
 	}
 
@@ -190,6 +200,11 @@ func AddExpense(c echo.Context) error {
 		groceryStore,
 		formattedDate,
 	)
+
+	if err != nil {
+		log.Printf("--- error adding expense: %v", err)
+		return c.String(http.StatusOK, "Falha ao adicionar")
+	}
 
 	rowsAffected, err := result.RowsAffected()
 

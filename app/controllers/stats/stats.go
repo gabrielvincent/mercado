@@ -1,8 +1,8 @@
 package stats
 
 import (
-	"context"
 	"errors"
+	"fmt"
 	expense "mercado/app/models/expense"
 	v "mercado/app/views/stats"
 	"mercado/utils"
@@ -10,7 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 )
 
@@ -144,42 +143,43 @@ func getGroceryStoresRanking(
 }
 
 func Index(c echo.Context) error {
-
 	startDate := getFirstDayOfCurrentMonth()
 	endDate := getLastDayOfCurrentMonth()
 	expenses, err := expense.GetExpenses(startDate, endDate)
-	if err != nil {
-		return err
+
+	fmt.Println("--- found", len(expenses), "expenses")
+
+	ranking := getGroceryStoresRanking(expenses)
+
+	fmt.Println("--- found ", len(ranking), "items in ranking")
+
+	ctx := utils.TemplContext{
+		"name": "Gastão",
 	}
 
-	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses)
 	if err != nil {
 		if err == NO_EXPENSES_ERR {
 			return utils.Render(
 				c,
 				http.StatusOK,
-				v.Index(expenses, nil),
-				nil,
+				v.Index(expenses, nil, ranking),
+				ctx,
 			)
 		}
 		return err
 	}
 
-	ctx := context.WithValue(c.Request().Context(), "name", "Gastão")
+	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses)
 
-	// TODO: Create a type to encapsulate multiple async components
-	channel := make(chan templ.Component)
-	go func() {
-		time.Sleep(2 * time.Second) // Simulate async operation
-		ranking := getGroceryStoresRanking(expenses)
-		channel <- v.GroceryStoresRanking(ranking)
-	}()
+	if err != nil {
+		fmt.Println("--- error calculating previous month compare info: ", err)
+		return err
+	}
 
-	return utils.RenderAsync(
+	return utils.Render(
 		c,
 		http.StatusOK,
-		v.Index(expenses, prevMonthCompareInfo),
+		v.Index(expenses, prevMonthCompareInfo, ranking),
 		ctx,
-		channel,
 	)
 }

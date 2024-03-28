@@ -135,10 +135,10 @@ templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
 templ Index(
 	expenses []expense.Expense,
 	prevMonthCompareInfo *expense.PreviousMonthCompareInfo,
+	ranking []expense.GroceryStoresRankingItem,
 ) {
 	@l.Layout() {
 		<div class="p-4">
-			<button onclick="alert('Click me!')">Click me!</button>
 			<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
 			<p>
 				hoje é o 
@@ -172,15 +172,7 @@ templ Index(
 				@Sessions(expenses, prevMonthCompareInfo, getCurrentDayOfMonth())
 			</p>
 			<p class="mt-4">
-				<div data-defer-id="grocery-stores-ranking">
-					O mercado que você mais visitou foi o ---. Você lá esteve --- vezes. O ranking é esse aqui:
-					<div class="w-full flex flex-col justify-between gap-2 p-3 bg-gray-100 rounded-lg">
-						<div>Loading...</div>
-						<div>---</div>
-						<div>------</div>
-						<div>----</div>
-					</div>
-				</div>
+				@GroceryStoresRanking(ranking)
 			</p>
 		</div>
 	}
