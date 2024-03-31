@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/a-h/templ v0.2.598
+	github.com/goodsign/monday v1.0.2
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/tursodatabase/libsql-client-go v0.0.0-20240220085343-4ae0eb9d0898

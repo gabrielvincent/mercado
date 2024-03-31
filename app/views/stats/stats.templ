@@ -6,6 +6,7 @@ import (
 	expense "mercado/app/models/expense"
 	"time"
 	"strconv"
+	"github.com/goodsign/monday"
 )
 
 func daysInMonth(year, month int) int {
@@ -67,11 +68,10 @@ templ DeferredComponent(id string, completed bool, children ...any) {
 
 templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
 	@DeferredComponent("grocery-stores-ranking", true) {
-		O mercado que você mais visitou foi o
-		{ " " }@Semibold() {
-	{ ranking[0].GroceryStore }
-}
-		{ "." }
+		O mercado que você mais visitou foi o{ " " }
+		@Semibold() {
+			<span>{ ranking[0].GroceryStore }.</span>
+		}
 		Você lá esteve
 		{ " " }@Semibold() {
 	{ strconv.Itoa(ranking[0].Sessions) }
@@ -132,13 +132,79 @@ templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
 	}
 }
 
-templ Index(
+func formatLocaleDate(date time.Time) string {
+	return monday.Format(date, "January 2006", monday.LocalePtBR)
+}
+
+type PreviousMonthProps struct {
+	date              time.Time
+	totalSpent        int
+	totalSessions     int
+	avgSpentBySession float64
+	avgSpentByDay     float64
+	avgSessionsByDay  float64
+	ranking           []expense.GroceryStoresRankingItem
+}
+
+templ RenderPreviousMonth(props PreviousMonthProps) {
+	@l.Layout() {
+		<div class="p-4">
+			<h2>{ formatLocaleDate(props.date) }</h2>
+			<p>
+				Total Gasto:{ " " }
+				@Currency(props.totalSpent)
+			</p>
+			<p>
+				Média de gastos por ida ao mercado:{ " " }
+				@Currency(int(props.avgSpentBySession))
+			</p>
+			<p>
+				Média de gastos por dia:{ " " }
+				@Currency(int(props.avgSpentByDay))
+			</p>
+			<p>
+				Total de idas ao mercado:{ " " }
+				@Semibold() {
+					{ strconv.Itoa(props.totalSessions) }
+				}
+			</p>
+			<p>
+				Média de idas por dia:{ " " }
+				@Semibold() {
+					{ strconv.Itoa(int(props.avgSessionsByDay)) }
+				}
+			</p>
+			@GroceryStoresRanking(props.ranking)
+		</div>
+	}
+}
+
+func PreviousMonth(date time.Time, expenses []expense.Expense, ranking []expense.GroceryStoresRankingItem) templ.Component {
+	totalSpent := expense.CalcTotal(expenses)
+	totalSessions := len(expenses)
+	numberOfDays := daysInMonth(date.Year(), int(date.Month()))
+
+	props := PreviousMonthProps{
+		date:              date,
+		totalSpent:        totalSpent,
+		totalSessions:     totalSessions,
+		avgSpentBySession: float64(totalSpent) / float64(totalSessions),
+		avgSpentByDay:     float64(totalSpent) / float64(numberOfDays),
+		avgSessionsByDay:  float64(totalSessions) / float64(numberOfDays),
+		ranking:           ranking,
+	}
+	return RenderPreviousMonth(props)
+}
+
+templ RenderIndex(
+	date time.Time,
 	expenses []expense.Expense,
 	prevMonthCompareInfo *expense.PreviousMonthCompareInfo,
 	ranking []expense.GroceryStoresRankingItem,
 ) {
 	@l.Layout() {
 		<div class="p-4">
+			<h1>{ formatLocaleDate(date) }</h1>
 			<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
 			<p>
 				hoje é o 
@@ -176,4 +242,14 @@ templ Index(
 			</p>
 		</div>
 	}
+}
+
+func Index(date time.Time, expenses []expense.Expense, prevMonthCompareInfo *expense.PreviousMonthCompareInfo, ranking []expense.GroceryStoresRankingItem) templ.Component {
+	currentDate := time.Now()
+
+	if currentDate.Year() == date.Year() && currentDate.Month() == date.Month() {
+		return RenderIndex(date, expenses, prevMonthCompareInfo, ranking)
+	}
+
+	return PreviousMonth(date, expenses, ranking)
 }

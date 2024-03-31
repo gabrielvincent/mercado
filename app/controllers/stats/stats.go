@@ -15,6 +15,32 @@ import (
 
 var NO_EXPENSES_ERR = errors.New("no expenses found")
 
+func getFirstDayOfMonth(date time.Time) time.Time {
+	return time.Date(
+		date.Year(),
+		date.Month(),
+		1,
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+}
+
+func getLastDayOfMonth(date time.Time) time.Time {
+	return time.Date(
+		date.Year(),
+		date.Month()+1,
+		0,
+		23,
+		59,
+		59,
+		0,
+		time.UTC,
+	)
+}
+
 func getCurrentDayOfMonth() int {
 	now := time.Now()
 	return now.Day()
@@ -22,9 +48,9 @@ func getCurrentDayOfMonth() int {
 
 func getPrevMonthCompareInfo(
 	expenses []expense.Expense,
+	date time.Time,
 ) (*expense.PreviousMonthCompareInfo, error) {
-	currentDay := getCurrentDayOfMonth()
-	previousMonth := time.Now().AddDate(0, -1, 0)
+	previousMonth := date.AddDate(0, -1, 0)
 	previousMonthFirstDay := time.Date(
 		previousMonth.Year(),
 		previousMonth.Month(),
@@ -35,19 +61,24 @@ func getPrevMonthCompareInfo(
 		0,
 		time.UTC,
 	)
-	thisDayLastMonth := time.Date(
+	previousMonthLastDay := time.Date(
 		previousMonth.Year(),
-		previousMonth.Month(),
-		currentDay,
+		previousMonth.Month()+1,
+		0,
 		23,
 		59,
 		59,
 		0,
 		time.UTC,
 	)
+	fmt.Println(
+		"--- preivous month first day: ",
+		previousMonthFirstDay,
+		" previous month last day: ", previousMonthLastDay,
+	)
 	previousMonthExpenses, err := expense.GetExpenses(
 		previousMonthFirstDay,
-		thisDayLastMonth,
+		previousMonthLastDay,
 	)
 
 	if err != nil {
@@ -143,8 +174,28 @@ func getGroceryStoresRanking(
 }
 
 func Index(c echo.Context) error {
-	startDate := getFirstDayOfCurrentMonth()
-	endDate := getLastDayOfCurrentMonth()
+	currentDate := time.Now()
+	dateParam := c.QueryParam("date")
+
+	var date time.Time
+	var err error
+
+	if dateParam != "" {
+		date, err = time.Parse("2006-01-02", dateParam)
+	} else {
+		date = currentDate
+	}
+
+	isCurrentMonth := date.Year() == currentDate.Year() &&
+		date.Month() == currentDate.Month()
+
+	if err != nil {
+		fmt.Println("--- error parsing date param:", err)
+		return err
+	}
+
+	startDate := getFirstDayOfMonth(date)
+	endDate := getLastDayOfMonth(date)
 	expenses, err := expense.GetExpenses(startDate, endDate)
 
 	fmt.Println("--- found", len(expenses), "expenses")
@@ -154,32 +205,28 @@ func Index(c echo.Context) error {
 	fmt.Println("--- found ", len(ranking), "items in ranking")
 
 	ctx := utils.TemplContext{
-		"name": "Gastão",
+		"name":           "Gastão",
+		"isCurrentMonth": isCurrentMonth,
 	}
+
+	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses, date)
 
 	if err != nil {
 		if err == NO_EXPENSES_ERR {
 			return utils.Render(
 				c,
 				http.StatusOK,
-				v.Index(expenses, nil, ranking),
+				v.Index(date, expenses, nil, ranking),
 				ctx,
 			)
 		}
 		return err
 	}
 
-	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses)
-
-	if err != nil {
-		fmt.Println("--- error calculating previous month compare info: ", err)
-		return err
-	}
-
 	return utils.Render(
 		c,
 		http.StatusOK,
-		v.Index(expenses, prevMonthCompareInfo, ranking),
+		v.Index(date, expenses, prevMonthCompareInfo, ranking),
 		ctx,
 	)
 }
