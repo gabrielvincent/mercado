@@ -134,9 +134,9 @@ func getLastDayOfCurrentMonth() time.Time {
 
 func Index(c echo.Context) error {
 
-	startDate := getFirstDayOfCurrentMonth()
-	endDate := getLastDayOfCurrentMonth()
-	expenses, err := expense.GetExpenses(startDate, endDate)
+	date := time.Now()
+	thirtyDaysAgo := date.AddDate(0, 0, -30)
+	expenses, err := expense.GetExpenses(thirtyDaysAgo, date)
 
 	if err != nil {
 		fmt.Println("--- error getting expenses: ", err)
