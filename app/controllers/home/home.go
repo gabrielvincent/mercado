@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -135,7 +136,7 @@ func getLastDayOfCurrentMonth() time.Time {
 func Index(c echo.Context) error {
 
 	date := time.Now()
-	thirtyDaysAgo := date.AddDate(0, 0, -30)
+	thirtyDaysAgo := date.AddDate(0, 0, -50)
 	expenses, err := expense.GetExpenses(thirtyDaysAgo, date)
 
 	if err != nil {
@@ -162,13 +163,15 @@ func AddExpense(c echo.Context) error {
 		return c.String(http.StatusOK, "O valor deve ser informado")
 	}
 
-	value, err := strconv.ParseFloat(valueStr, 64)
+	valueStr = strings.TrimSpace(valueStr)
+	valueStr = strings.ReplaceAll(valueStr, ".", "")
+	valueStr = strings.ReplaceAll(valueStr, ",", ".")
+
+	value, err := strconv.ParseInt(valueStr, 10, 64)
 	if err != nil {
 		setErrorHeaders()
 		return c.String(http.StatusOK, "O valor deve ser um número")
 	}
-
-	value = value * 100
 
 	if value <= 0 {
 		setErrorHeaders()
