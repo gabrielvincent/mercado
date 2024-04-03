@@ -70,12 +70,12 @@ templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
 	@DeferredComponent("grocery-stores-ranking", true) {
 		O mercado que você mais visitou foi o{ " " }
 		@Semibold() {
-			<span>{ ranking[0].GroceryStore }.</span>
+			{ ranking[0].GroceryStore }.
 		}
-		Você lá esteve
-		{ " " }@Semibold() {
-	{ strconv.Itoa(ranking[0].Sessions) }
-}
+		Você lá esteve{ " " }
+		@Semibold() {
+			{ strconv.Itoa(ranking[0].Sessions) }
+		}
 		{ " " }vezes. O ranking é esse aqui:
 		<div
 			class="mt-2 p-3 bg-gray-100 rounded-lg"
