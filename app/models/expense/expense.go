@@ -33,13 +33,6 @@ type GroceryStoresRankingItem struct {
 	Sessions     int
 }
 
-type PreviousMonthCompareInfo struct {
-	Sessions                           int
-	Total                              int
-	CompareTotalPercent                float64
-	CompareGroceryStoreSessionsPercent float64
-}
-
 func openDB() (*sql.DB, error) {
 
 	stage := os.Getenv("STAGE")
@@ -96,6 +89,7 @@ func GetExpenses(startDate time.Time, endDate time.Time) ([]Expense, error) {
 	defer db.Close()
 
 	if err != nil {
+		fmt.Println("--- error opening db: ", err)
 		return nil, err
 	}
 
@@ -110,6 +104,7 @@ func GetExpenses(startDate time.Time, endDate time.Time) ([]Expense, error) {
 	defer rows.Close()
 
 	if err != nil {
+		fmt.Println("--- error running query: ", err)
 		return nil, err
 	}
 

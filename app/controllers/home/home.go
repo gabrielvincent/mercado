@@ -259,7 +259,7 @@ func EditExpense(c echo.Context) error {
 		)
 	}
 
-	if id == "" || err != nil {
+	if id == "" {
 		log.Printf(`--- invalid id: %v`, id)
 		return c.String(http.StatusOK, "Error!")
 	}

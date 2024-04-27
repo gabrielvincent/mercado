@@ -2,8 +2,10 @@ package stats
 
 import (
 	l "mercado/app/views/layouts"
+	utils "mercado/utils"
 	stringsUtils "mercado/utils/strings"
 	expense "mercado/app/models/expense"
+	stats "mercado/app/models/stats"
 	"time"
 	"strconv"
 	"github.com/goodsign/monday"
@@ -31,23 +33,52 @@ templ Currency(value int) {
 	}
 }
 
-templ PreviousMonthCompare(info *expense.PreviousMonthCompareInfo) {
-	<span>A essa altura, no mês passado, você tinha gastado</span>
-	{ " " }@Currency(info.Total) {
-	"."
-}
+type PreviousMonthCompareInfoProps struct {
+	prevMonthCompare *stats.PeriodComparison
+	spent            stats.ComparisonMetric[int]
+	sessions         stats.ComparisonMetric[int]
 }
 
-templ Sessions(expenses []expense.Expense, info *expense.PreviousMonthCompareInfo, day int) {
-	Você já foi ao mercado
-	{ " " }@Semibold() {
-	{  strconv.Itoa(len(expenses)) }
+templ RenderPreviousMonthCompare(props PreviousMonthCompareInfoProps, expenses []expense.Expense) {
+	<h1 class="text-gray-800 mb-2">Comparação com o mesmo período no mês anterior:</h1>
+	<section class="bg-gray-100 p-3 rounded-lg">
+		<div class="grid grid-cols-3 gap-2 items-center ">
+			<div></div>
+			<div>
+				<span class="text-gray-600">Esse mês</span>
+			</div>
+			<div>
+				<span class="text-gray-600">Mês passado</span>
+			</div>
+			<div>
+				<span class="text-gray-700">Gasto</span>
+			</div>
+			<div class="font-bold text-gray-900">
+				{ stringsUtils.FormatCurrency(props.spent.TargetValue) }
+			</div>
+			<div class="font-bold text-gray-600">
+				{ stringsUtils.FormatCurrency(props.spent.CompareValue) }
+			</div>
+			<div>
+				<span class="text-gray-700">Idas</span>
+			</div>
+			<div class="font-bold text-gray-900">
+				{ strconv.Itoa(props.sessions.TargetValue) } vezes
+			</div>
+			<div class="font-bold text-gray-600">
+				{ strconv.Itoa(props.sessions.CompareValue) } vezes
+			</div>
+		</div>
+	</section>
 }
-	{ " " }
-	vezes esse mês.
-	if info != nil {
-		{ " " }No mês passado, até o dia <span class="font-semibold">{ strconv.Itoa(day) }</span>, tinham sido <span class="font-semibold">{ strconv.Itoa(info.Sessions) }</span> idas ao mercado.
+
+func PreviousMonthCompare(prevMonthCompare *stats.PeriodComparison) templ.Component {
+	props := PreviousMonthCompareInfoProps{
+		prevMonthCompare: prevMonthCompare,
+		spent:            prevMonthCompare.Metrics["Spent"].(stats.ComparisonMetric[int]),
+		sessions:         prevMonthCompare.Metrics["Sessions"].(stats.ComparisonMetric[int]),
 	}
+	return RenderPreviousMonthCompare(props, []expense.Expense{})
 }
 
 var isFirst = true
@@ -137,119 +168,175 @@ func formatLocaleDate(date time.Time) string {
 }
 
 type PreviousMonthProps struct {
-	date              time.Time
-	totalSpent        int
-	totalSessions     int
-	avgSpentBySession float64
-	avgSpentByDay     float64
-	avgSessionsByDay  float64
-	ranking           []expense.GroceryStoresRankingItem
+	spent    stats.ComparisonMetric[int]
+	sessions stats.ComparisonMetric[int]
 }
 
-templ RenderPreviousMonth(props PreviousMonthProps) {
+func getMomCompare(ctx context.Context) stats.PeriodComparison {
+	return ctx.Value("momCompare").(stats.PeriodComparison)
+}
+
+templ RenderPreviousMonth() {
 	@l.Layout() {
 		<div class="p-4">
-			<h2>{ formatLocaleDate(props.date) }</h2>
 			<p>
 				Total Gasto:{ " " }
-				@Currency(props.totalSpent)
 			</p>
-			<p>
-				Média de gastos por ida ao mercado:{ " " }
-				@Currency(int(props.avgSpentBySession))
-			</p>
-			<p>
-				Média de gastos por dia:{ " " }
-				@Currency(int(props.avgSpentByDay))
-			</p>
-			<p>
-				Total de idas ao mercado:{ " " }
-				@Semibold() {
-					{ strconv.Itoa(props.totalSessions) }
-				}
-			</p>
-			<p>
-				Média de idas por dia:{ " " }
-				@Semibold() {
-					{ strconv.Itoa(int(props.avgSessionsByDay)) }
-				}
-			</p>
-			@GroceryStoresRanking(props.ranking)
 		</div>
 	}
 }
 
-func PreviousMonth(date time.Time, expenses []expense.Expense, ranking []expense.GroceryStoresRankingItem) templ.Component {
+func PreviousMonth() templ.Component {
+	return RenderPreviousMonth()
+}
+
+templ CurrentMonth(
+	date time.Time, expenses []expense.Expense,
+	prevMonthCompare *stats.PeriodComparison,
+	ranking []expense.GroceryStoresRankingItem,
+) {
+	<h2>{ formatLocaleDate(date) }</h2>
+	<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
+	<p>
+		hoje é o 
+		<span class="font-semibold">{ strconv.Itoa(getCurrentDayOfMonth()) }º</span>
+		dia do mês e você já gastou
+		<span>
+			@Currency(expense.CalcTotal(expenses))
+		</span>.
+		Até agora, você gastou em média 
+		@Currency(int(expense.CalcAvg(expenses)))
+		{ " " }a cada ida ao mercado (foram já <span class="font-semibold">{ strconv.Itoa(len(expenses)) }</span>
+		if len(expenses) > 1 {
+			vezes,
+		} else {
+			vez,
+		}
+		uma média de
+		<span class="font-semibold">{ strconv.FormatFloat(float64(len(expenses)) / float64(getCurrentDayOfMonth()) , 'f', 2, 64) }</span>
+		idas ao mercado por dia, o que dá uma média de
+		<span class="font-semibold">
+			@Currency(int(float64(expense.CalcTotal(expenses)) / float64(getCurrentDayOfMonth())))
+		</span> gastos por dia!)
+		Você acha bonita uma coisa dessas?
+	</p>
+	if prevMonthCompare != nil {
+		<p class="mt-4">
+			@PreviousMonthCompare(prevMonthCompare)
+		</p>
+	}
+	<p class="mt-4">
+		@GroceryStoresRanking(ranking)
+	</p>
+}
+
+templ InfoTile(title string, displayValue string) {
+	<div class="flex flex-col items-center gap-2">
+		<span class="text-3xl font-semibold">
+			{ displayValue }
+		</span>
+		<span class="text-center">{ title }</span>
+	</div>
+}
+
+type PastMonthProps struct {
+	date                 time.Time
+	totalSpent           int
+	totalSessions        int
+	avgSpentPerDay       float64
+	avgSessionsPerDay    float64
+	avgSpentPerSession   float64
+	expensesMedian       float64
+	expensesStdDeviation float64
+}
+
+templ RenderPastMonth(props PastMonthProps) {
+	<h2>{ formatLocaleDate(props.date) }</h2>
+	<div class="grid grid-cols-2 gap-12 mt-8">
+		<div>
+			@InfoTile("Total Gasto", stringsUtils.FormatCurrency(props.totalSpent))
+		</div>
+		<div>
+			@InfoTile("Idas ao mercado", strconv.Itoa(props.totalSessions))
+		</div>
+		<div>
+			@InfoTile("Média de gasto por ida ao mercado", stringsUtils.FormatCurrency(int(props.avgSpentPerSession)))
+		</div>
+		<div>
+			@InfoTile("Média de gasto por dia", stringsUtils.FormatCurrency(int(props.avgSpentPerDay)))
+		</div>
+		<div>
+			@InfoTile("Média de idas por dia", strconv.FormatFloat(props.avgSessionsPerDay, 'f', 2, 64))
+		</div>
+		<div>
+			@InfoTile("Mediana dos gastos", stringsUtils.FormatCurrency(int(props.expensesMedian)))
+		</div>
+		<div>
+			@InfoTile("Desvio padrão da média de gastos por ida ao mercado", strconv.FormatFloat(props.expensesStdDeviation/100.0, 'f', 2, 64))
+		</div>
+	</div>
+}
+
+func PastMonth(
+	date time.Time,
+	expenses []expense.Expense,
+	prevMonthCompare *stats.PeriodComparison,
+	ranking []expense.GroceryStoresRankingItem,
+) templ.Component {
+	daysInMonth := time.Date(
+		date.Year(),
+		date.Month()+1,
+		0,
+		23,
+		59,
+		59,
+		0,
+		time.UTC,
+	).Day()
 	totalSpent := expense.CalcTotal(expenses)
 	totalSessions := len(expenses)
-	numberOfDays := daysInMonth(date.Year(), int(date.Month()))
 
-	props := PreviousMonthProps{
-		date:              date,
-		totalSpent:        totalSpent,
-		totalSessions:     totalSessions,
-		avgSpentBySession: float64(totalSpent) / float64(totalSessions),
-		avgSpentByDay:     float64(totalSpent) / float64(numberOfDays),
-		avgSessionsByDay:  float64(totalSessions) / float64(numberOfDays),
-		ranking:           ranking,
+	expenseValues := make([]int, 0, totalSessions)
+	for _, expense := range expenses {
+		expenseValues = append(expenseValues, expense.Value)
 	}
-	return RenderPreviousMonth(props)
+
+	expensesMedian := utils.CalcMedian(expenseValues)
+	expensesStdDeviation := utils.CalcStandardDeviation(expenseValues)
+
+	props := PastMonthProps{
+		date:                 date,
+		totalSpent:           totalSpent,
+		totalSessions:        totalSessions,
+		avgSpentPerDay:       float64(expense.CalcTotal(expenses)) / float64(daysInMonth),
+		avgSessionsPerDay:    float64(totalSessions) / float64(daysInMonth),
+		avgSpentPerSession:   float64(expense.CalcTotal(expenses)) / float64(totalSessions),
+		expensesMedian:       expensesMedian,
+		expensesStdDeviation: expensesStdDeviation,
+	}
+
+	return RenderPastMonth(props)
 }
 
 templ RenderIndex(
 	date time.Time,
 	expenses []expense.Expense,
-	prevMonthCompareInfo *expense.PreviousMonthCompareInfo,
+	prevMonthCompare *stats.PeriodComparison,
 	ranking []expense.GroceryStoresRankingItem,
 ) {
 	@l.Layout() {
 		<div class="p-4">
-			<h1>{ formatLocaleDate(date) }</h1>
-			<h1 class="font-bold text-lg mb-4">Olá, { ctx.Value("name").(string) },</h1>
-			<p>
-				hoje é o 
-				<span class="font-semibold">{ strconv.Itoa(getCurrentDayOfMonth()) }º</span>
-				dia do mês e você já gastou
-				<span class="font-semibold">
-					@Currency(expense.CalcTotal(expenses))
-				</span>.
-				Até agora, você gastou em média 
-				@Currency(int(expense.CalcAvg(expenses)))
-				{ " " }a cada ida ao mercado (foram já <span class="font-semibold">{ strconv.Itoa(len(expenses)) }</span>
-				if len(expenses) > 1 {
-					vezes,
-				} else {
-					vez,
-				}
-				uma média de
-				<span class="font-semibold">{ strconv.FormatFloat(float64(len(expenses)) / float64(getCurrentDayOfMonth()) , 'f', 2, 64) }</span>
-				idas ao mercado por dia, o que dá uma média de
-				<span class="font-semibold">
-					@Currency(int(float64(expense.CalcTotal(expenses)) / float64(getCurrentDayOfMonth())))
-				</span> gastos por dia!)
-				Você acha bonita uma coisa dessas?
-			</p>
-			if prevMonthCompareInfo != nil {
-				<p class="mt-4">
-					@PreviousMonthCompare(prevMonthCompareInfo)
-				</p>
+			switch ctx.Value("isCurrentMonth").(bool) {
+				case true:
+					@CurrentMonth(date, expenses, prevMonthCompare, ranking)
+				case false:
+					@PastMonth(date, expenses, prevMonthCompare, ranking)
 			}
-			<p class="mt-4">
-				@Sessions(expenses, prevMonthCompareInfo, getCurrentDayOfMonth())
-			</p>
-			<p class="mt-4">
-				@GroceryStoresRanking(ranking)
-			</p>
 		</div>
 	}
 }
 
-func Index(date time.Time, expenses []expense.Expense, prevMonthCompareInfo *expense.PreviousMonthCompareInfo, ranking []expense.GroceryStoresRankingItem) templ.Component {
-	currentDate := time.Now()
+func Index(date time.Time, expenses []expense.Expense, prevMonthCompare *stats.PeriodComparison, ranking []expense.GroceryStoresRankingItem) templ.Component {
 
-	if currentDate.Year() == date.Year() && currentDate.Month() == date.Month() {
-		return RenderIndex(date, expenses, prevMonthCompareInfo, ranking)
-	}
-
-	return PreviousMonth(date, expenses, ranking)
+	return RenderIndex(date, expenses, prevMonthCompare, ranking)
 }

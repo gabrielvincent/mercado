@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	expense "mercado/app/models/expense"
+	stats "mercado/app/models/stats"
 	v "mercado/app/views/stats"
 	"mercado/utils"
 	"net/http"
@@ -44,68 +45,6 @@ func getLastDayOfMonth(date time.Time) time.Time {
 func getCurrentDayOfMonth() int {
 	now := time.Now()
 	return now.Day()
-}
-
-func getPrevMonthCompareInfo(
-	expenses []expense.Expense,
-	date time.Time,
-) (*expense.PreviousMonthCompareInfo, error) {
-	previousMonth := date.AddDate(0, -1, 0)
-	previousMonthFirstDay := time.Date(
-		previousMonth.Year(),
-		previousMonth.Month(),
-		1,
-		0,
-		0,
-		0,
-		0,
-		time.UTC,
-	)
-	previousMonthLastDay := time.Date(
-		previousMonth.Year(),
-		previousMonth.Month()+1,
-		0,
-		23,
-		59,
-		59,
-		0,
-		time.UTC,
-	)
-	fmt.Println(
-		"--- preivous month first day: ",
-		previousMonthFirstDay,
-		" previous month last day: ", previousMonthLastDay,
-	)
-	previousMonthExpenses, err := expense.GetExpenses(
-		previousMonthFirstDay,
-		previousMonthLastDay,
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(previousMonthExpenses) == 0 {
-		return nil, NO_EXPENSES_ERR
-	}
-
-	currTotal := expense.CalcTotal(expenses)
-	prevTotal := expense.CalcTotal(previousMonthExpenses)
-
-	return &expense.PreviousMonthCompareInfo{
-		Total:    prevTotal,
-		Sessions: len(previousMonthExpenses),
-		CompareTotalPercent: float64(
-			prevTotal,
-		) / float64(
-			currTotal,
-		),
-		CompareGroceryStoreSessionsPercent: float64(
-			len(previousMonthExpenses),
-		) / float64(
-			len(expenses),
-		),
-	}, nil
 }
 
 func getFirstDayOfCurrentMonth() time.Time {
@@ -173,6 +112,90 @@ func getGroceryStoresRanking(
 	return rankingItems
 }
 
+func getPeriodComparison(
+	targetDate time.Time,
+	compareDate time.Time,
+	durationInDays int,
+) (*stats.PeriodComparison, error) {
+
+	targetDateStart := targetDate.AddDate(0, 0, -durationInDays)
+	compareDateStart := compareDate.AddDate(0, 0, -durationInDays)
+
+	compareExpenses, err := expense.GetExpenses(compareDateStart, compareDate)
+	if err != nil {
+		fmt.Println("--- error getting expenses", err)
+		return nil, err
+	}
+	if len(compareExpenses) == 0 {
+		fmt.Println("--- no expenses found for period")
+		return nil, NO_EXPENSES_ERR
+	}
+
+	targetExpenses, err := expense.GetExpenses(targetDateStart, targetDate)
+	if err != nil {
+		return nil, err
+	}
+	if len(targetExpenses) == 0 {
+		return nil, NO_EXPENSES_ERR
+	}
+
+	targetTotal := expense.CalcTotal(targetExpenses)
+	compareTotal := expense.CalcTotal(compareExpenses)
+	targetSessions := len(targetExpenses)
+	compareSessions := len(compareExpenses)
+
+	compare := stats.PeriodComparison{
+		TargetDateStart:  targetDateStart,
+		TargetDateEnd:    targetDate,
+		CompareDateStart: compareDateStart,
+		CompareDateEnd:   compareDate,
+		Metrics: map[string]stats.Metric{
+			"Spent": stats.ComparisonMetric[int]{
+				Name:          "Spent",
+				Type:          stats.Amount,
+				TargetValue:   targetTotal,
+				CompareValue:  compareTotal,
+				IncreaseValue: targetTotal - compareTotal,
+			},
+			"Sessions": stats.ComparisonMetric[int]{
+				Name:          "Sessions",
+				Type:          stats.Amount,
+				TargetValue:   targetSessions,
+				CompareValue:  compareSessions,
+				IncreaseValue: targetSessions - compareSessions,
+			},
+		},
+	}
+
+	fmt.Println("--- compare:", compare.TargetDateStart, compare.Metrics)
+
+	return &compare, nil
+}
+
+func getMoMComparison(targetDate time.Time) (*stats.PeriodComparison, error) {
+	durationInDays := 30
+	compareDate := targetDate.AddDate(0, 0, -durationInDays)
+	return getPeriodComparison(targetDate, compareDate, durationInDays)
+}
+
+func getPrevMonthComparison() (*stats.PeriodComparison, error) {
+	today := time.Now()
+	todayLastMonth := today.AddDate(0, -1, 0)
+	firstDayOfMonth := getFirstDayOfCurrentMonth()
+	firstDayLastMonth := firstDayOfMonth.AddDate(0, -1, 0)
+
+	if todayLastMonth.Month() != firstDayLastMonth.Month() {
+		todayLastMonth = getLastDayOfMonth(firstDayLastMonth)
+	}
+
+	return getPeriodComparison(
+		today,
+		todayLastMonth,
+		todayLastMonth.Day(),
+	)
+
+}
+
 func Index(c echo.Context) error {
 	currentDate := time.Now()
 	dateParam := c.QueryParam("date")
@@ -209,7 +232,7 @@ func Index(c echo.Context) error {
 		"isCurrentMonth": isCurrentMonth,
 	}
 
-	prevMonthCompareInfo, err := getPrevMonthCompareInfo(expenses, date)
+	prevMonthCompare, err := getPrevMonthComparison()
 
 	if err != nil {
 		if err == NO_EXPENSES_ERR {
@@ -226,7 +249,12 @@ func Index(c echo.Context) error {
 	return utils.Render(
 		c,
 		http.StatusOK,
-		v.Index(date, expenses, prevMonthCompareInfo, ranking),
+		v.Index(
+			date,
+			expenses,
+			prevMonthCompare,
+			ranking,
+		),
 		ctx,
 	)
 }
