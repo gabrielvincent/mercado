@@ -9,6 +9,9 @@ import (
 	"time"
 	"strconv"
 	"github.com/goodsign/monday"
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
+	"github.com/dchest/uniuri"
 )
 
 func daysInMonth(year, month int) int {
@@ -81,113 +84,77 @@ func PreviousMonthCompare(prevMonthCompare *stats.PeriodComparison) templ.Compon
 	return RenderPreviousMonthCompare(props, []expense.Expense{})
 }
 
-var isFirst = true
-
-script loadDeferred(id string) {
-    loadDeferredComponent(id)
-}
-
-templ DeferredComponent(id string, completed bool, children ...any) {
-	<div
-		data-defer-id={ id }
-		data-defer-completed={ strconv.FormatBool(completed) }
-	>
-		{ children... }
-	</div>
-	@loadDeferred(id)
-}
-
 templ GroceryStoresRanking(ranking []expense.GroceryStoresRankingItem) {
-	@DeferredComponent("grocery-stores-ranking", true) {
-		O mercado que você mais visitou foi o{ " " }
-		@Semibold() {
-			{ ranking[0].GroceryStore }.
-		}
-		Você lá esteve{ " " }
-		@Semibold() {
-			{ strconv.Itoa(ranking[0].Sessions) }
-		}
-		{ " " }vezes. O ranking é esse aqui:
-		<div
-			class="mt-2 p-3 bg-gray-100 rounded-lg"
-		>
-			for i, item := range ranking {
-				<div class="flex items-center gap-2">
-					<span>
-						switch i {
-							case 0:
-								🥇
-							case 1:
-								🥈
-							case 2:
-								🥉
-							case 3:
-								4️⃣
-							case 4:
-								5️⃣
-							case 5:
-								6️⃣
-							case 6:
-								7️⃣
-							case 7:
-								8️⃣
-							case 8:
-								9️⃣
-							case 9:
-								🔟
-							default:
-								{ "- " }
-						}
-					</span>
-					<div class="w-full flex items-center justify-between">
-						<span
-							class={ "font-semibold",
+	O mercado que você mais visitou foi o{ " " }
+	<span class="semibold">
+		{ ranking[0].GroceryStore }
+	</span>
+	<span>{ ". " }</span>
+	Você lá esteve{ " " }
+	@Semibold() {
+		{ strconv.Itoa(ranking[0].Sessions) }
+	}
+	{ " " }vezes. O ranking é esse aqui:
+	<div
+		class="mt-2 p-3 bg-gray-100 rounded-lg"
+	>
+		for i, item := range ranking {
+			<div class="flex items-center gap-2">
+				<span>
+					switch i {
+						case 0:
+							🥇
+						case 1:
+							🥈
+						case 2:
+							🥉
+						case 3:
+							4️⃣
+						case 4:
+							5️⃣
+						case 5:
+							6️⃣
+						case 6:
+							7️⃣
+						case 7:
+							8️⃣
+						case 8:
+							9️⃣
+						case 9:
+							🔟
+						default:
+							{ "- " }
+					}
+				</span>
+				<div class="w-full flex items-center justify-between">
+					<span
+						class={ "font-semibold",
                             templ.KV("text-amber-400", i == 0),
                             templ.KV("text-stone-400", i == 1),
                             templ.KV("text-orange-400", i == 2) }
-						>
-							{ item.GroceryStore }
-						</span>
-						<span>
-							({ strconv.Itoa(item.Sessions) }
-							if item.Sessions > 1 {
-								{ " " }visitas)
-							} else {
-								{ " " }visita)
-							}
-						</span>
-					</div>
+					>
+						{ item.GroceryStore }
+					</span>
+					<span>
+						({ strconv.Itoa(item.Sessions) }
+						if item.Sessions > 1 {
+							{ " " }visitas)
+						} else {
+							{ " " }visita)
+						}
+					</span>
 				</div>
-			}
-		</div>
-	}
+			</div>
+		}
+	</div>
 }
 
 func formatLocaleDate(date time.Time) string {
 	return monday.Format(date, "January 2006", monday.LocalePtBR)
 }
 
-type PreviousMonthProps struct {
-	spent    stats.ComparisonMetric[int]
-	sessions stats.ComparisonMetric[int]
-}
-
 func getMomCompare(ctx context.Context) stats.PeriodComparison {
 	return ctx.Value("momCompare").(stats.PeriodComparison)
-}
-
-templ RenderPreviousMonth() {
-	@l.Layout() {
-		<div class="p-4">
-			<p>
-				Total Gasto:{ " " }
-			</p>
-		</div>
-	}
-}
-
-func PreviousMonth() templ.Component {
-	return RenderPreviousMonth()
 }
 
 templ CurrentMonth(
@@ -203,7 +170,8 @@ templ CurrentMonth(
 		dia do mês e você já gastou
 		<span>
 			@Currency(expense.CalcTotal(expenses))
-		</span>.
+		</span>
+		<span>{ ". " }</span>
 		Até agora, você gastou em média 
 		@Currency(int(expense.CalcAvg(expenses)))
 		{ " " }a cada ida ao mercado (foram já <span class="font-semibold">{ strconv.Itoa(len(expenses)) }</span>
@@ -239,6 +207,28 @@ templ InfoTile(title string, displayValue string) {
 	</div>
 }
 
+script resizeChart() {
+    const echartsWrapper = document.querySelector("[_echarts_instance_]");
+    const chartInstanceId = echartsWrapper.getAttribute("_echarts_instance_");
+    const chart = echarts.getInstanceById(chartInstanceId);
+    window.addEventListener("resize", () => {
+        chart.resize();
+    });
+    chart.resize();
+}
+
+templ RenderChart(htmlStr string, id string) {
+	<div id={ id } class="w-full">
+		@templ.Raw(htmlStr)
+	</div>
+	@resizeChart()
+}
+
+func Chart(buf bytes.Buffer) templ.Component {
+	id := uniuri.New()
+	return RenderChart(buf.String(), id)
+}
+
 type PastMonthProps struct {
 	date                 time.Time
 	totalSpent           int
@@ -248,6 +238,7 @@ type PastMonthProps struct {
 	avgSpentPerSession   float64
 	expensesMedian       float64
 	expensesStdDeviation float64
+	expensesChart        templ.Component
 }
 
 templ RenderPastMonth(props PastMonthProps) {
@@ -274,7 +265,42 @@ templ RenderPastMonth(props PastMonthProps) {
 		<div>
 			@InfoTile("Desvio padrão da média de gastos por ida ao mercado", strconv.FormatFloat(props.expensesStdDeviation/100.0, 'f', 2, 64))
 		</div>
+		<div class="col-span-2">
+			@props.expensesChart
+		</div>
 	</div>
+}
+
+func ExpensesThroughMonthChart(expenses []expense.Expense) templ.Component {
+
+	line := charts.NewLine()
+	line.SetGlobalOptions(
+		charts.WithTitleOpts(opts.Title{
+			Title:    "Gastos ao longo do mês",
+			Subtitle: "",
+		}))
+
+	xLabels := make([]string, 0)
+	items := make([]opts.LineData, 0)
+	for _, expense := range expenses {
+		items = append(items, opts.LineData{Value: expense.Value / 100.0})
+		xLabels = append(xLabels, stringsUtils.FormatCurrency(expense.Value))
+	}
+
+	line.SetXAxis(xLabels).
+		AddSeries("Valor gasto", items).
+		SetSeriesOptions(
+			charts.WithAreaStyleOpts(opts.AreaStyle{
+				Opacity: 0.2,
+			}),
+			charts.WithLabelOpts(opts.Label{
+				Show: false,
+			}),
+		)
+
+	buf := new(bytes.Buffer)
+	line.Render(buf)
+	return Chart(*buf)
 }
 
 func PastMonth(
@@ -304,6 +330,8 @@ func PastMonth(
 	expensesMedian := utils.CalcMedian(expenseValues)
 	expensesStdDeviation := utils.CalcStandardDeviation(expenseValues)
 
+	expensesChart := ExpensesThroughMonthChart(expenses)
+
 	props := PastMonthProps{
 		date:                 date,
 		totalSpent:           totalSpent,
@@ -313,6 +341,7 @@ func PastMonth(
 		avgSpentPerSession:   float64(expense.CalcTotal(expenses)) / float64(totalSessions),
 		expensesMedian:       expensesMedian,
 		expensesStdDeviation: expensesStdDeviation,
+		expensesChart:        expensesChart,
 	}
 
 	return RenderPastMonth(props)

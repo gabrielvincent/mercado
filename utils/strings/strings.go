@@ -6,7 +6,6 @@ import (
 )
 
 func FormatCurrency(value int) string {
-
 	whole := value / 100
 	decimal := value % 100
 	decimalStr := strconv.Itoa(decimal)

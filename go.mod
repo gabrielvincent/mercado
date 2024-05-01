@@ -4,6 +4,7 @@ go 1.22
 
 require (
 	github.com/a-h/templ v0.2.663
+	github.com/go-echarts/go-echarts/v2 v2.3.3
 	github.com/goodsign/monday v1.0.2
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -12,6 +13,7 @@ require (
 
 require (
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230512164433-5d1fd1a340c9 // indirect
+	github.com/dchest/uniuri v1.2.0 // indirect
 	github.com/klauspost/compress v1.15.15 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/libsql/sqlite-antlr4-parser v0.0.0-20230802215326-5cb5bb604475 // indirect
