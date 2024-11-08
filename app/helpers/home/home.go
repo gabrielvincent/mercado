@@ -6,10 +6,10 @@ import (
 )
 
 type Expense struct {
+	Date         time.Time
+	GroceryStore string
 	ID           int
 	Value        int
-	GroceryStore string
-	Date         time.Time
 }
 
 var PT_MONTHS = []string{
@@ -28,7 +28,6 @@ var PT_MONTHS = []string{
 }
 
 func FormatDate(date time.Time) string {
-
 	formatted := strconv.Itoa(
 		date.Day(),
 	) + " de " + PT_MONTHS[date.Month()-1] + ", " + date.Format(
