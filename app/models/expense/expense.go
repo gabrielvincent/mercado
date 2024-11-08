@@ -9,17 +9,40 @@ import (
 )
 
 var GROCERY_STORES = []string{
-	"Aldi",
-	"Continente",
-	"El Corte Inglés",
-	"Froiz",
-	"Lidl",
-	"Mercadona",
-	"Minipreço",
+	"Assaí",
+	"Campeão",
+	"Carrefour",
+	"Guanabara",
+	"Hortifruti Genérico",
+	"Hortifruti",
+	"Inter",
+	"Mundial",
+	"Merca Dez",
 	"Padaria",
-	"Pingo Doce",
-	"Pomar",
+	"Prezunic",
+	"Princesa",
+	"Pão de Açúcar",
+	"Rede Economia",
+	"SuperPrix",
+	"Supermarket",
+	"Ultra",
+	"Zona Sul",
+	"Outro",
 }
+
+// var GROCERY_STORES = []string{
+// 	"Aldi",
+// 	"Auchan",
+// 	"Continente",
+// 	"El Corte Inglés",
+// 	"Froiz",
+// 	"Lidl",
+// 	"Mercadona",
+// 	"Minipreço",
+// 	"Padaria",
+// 	"Pingo Doce",
+// 	"Pomar",
+// }
 
 type Expense struct {
 	ID           int
@@ -34,7 +57,6 @@ type GroceryStoresRankingItem struct {
 }
 
 func openDB() (*sql.DB, error) {
-
 	stage := os.Getenv("STAGE")
 	var dbURL string
 	var dbEngine string
@@ -66,7 +88,6 @@ func parseDate(dateStr string) (time.Time, error) {
 }
 
 func CalcAvg(expenses []Expense) float64 {
-
 	total := CalcTotal(expenses)
 	return float64(total) / float64(len(expenses))
 }
@@ -81,7 +102,6 @@ func CalcTotal(expenses []Expense) int {
 }
 
 func GetExpenses(startDate time.Time, endDate time.Time) ([]Expense, error) {
-
 	formattedStartDate := startDate.Format("2006-01-02 15:04:05")
 	formattedEndDate := endDate.Format("2006-01-02 15:04:05")
 

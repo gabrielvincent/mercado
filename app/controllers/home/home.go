@@ -40,7 +40,6 @@ var PT_MONTHS = []string{
 }
 
 func openDB() (*sql.DB, error) {
-
 	stage := os.Getenv("STAGE")
 	var dbURL string
 	var dbEngine string
@@ -71,7 +70,6 @@ func openDB() (*sql.DB, error) {
 }
 
 func formatDate(date time.Time) string {
-
 	formatted := strconv.Itoa(
 		date.Day(),
 	) + " de " + PT_MONTHS[date.Month()-1] + ", " + date.Format(
@@ -96,13 +94,12 @@ func validateGroceryStore(groceryStore string) bool {
 }
 
 func formatCurrency(value int) string {
-
 	whole := value / 100
 	decimal := value % 100
 	decimalStr := strconv.Itoa(decimal)
 	paddedDecimal := fmt.Sprintf("%02s", decimalStr)
 
-	return "€" + strconv.Itoa(whole) + "," + paddedDecimal
+	return "R$" + strconv.Itoa(whole) + "," + paddedDecimal
 }
 
 func getFirstDayOfCurrentMonth() time.Time {
@@ -134,11 +131,9 @@ func getLastDayOfCurrentMonth() time.Time {
 }
 
 func Index(c echo.Context) error {
-
 	date := time.Now()
 	thirtyDaysAgo := date.AddDate(0, 0, -50)
 	expenses, err := expense.GetExpenses(thirtyDaysAgo, date)
-
 	if err != nil {
 		fmt.Println("--- error getting expenses: ", err)
 		return err
@@ -148,7 +143,6 @@ func Index(c echo.Context) error {
 }
 
 func AddExpense(c echo.Context) error {
-
 	setErrorHeaders := func() {
 		header := c.Response().Header()
 		htmx.Retarget(header, "find span.error-message")
@@ -203,7 +197,6 @@ func AddExpense(c echo.Context) error {
 		groceryStore,
 		formattedDate,
 	)
-
 	if err != nil {
 		log.Printf("--- error adding expense: %v", err)
 		return c.String(http.StatusOK, "Falha ao adicionar")
@@ -233,7 +226,6 @@ func AddExpense(c echo.Context) error {
 		}),
 		nil,
 	)
-
 }
 
 func EditExpense(c echo.Context) error {
@@ -275,7 +267,6 @@ func EditExpense(c echo.Context) error {
 		groceryStore,
 		idInt,
 	)
-
 	if err != nil {
 		return c.String(http.StatusOK, "Error!")
 	}
@@ -308,11 +299,9 @@ func EditExpense(c echo.Context) error {
 		v.ExpensesListItem(expense),
 		nil,
 	)
-
 }
 
 func DeleteExpense(c echo.Context) error {
-
 	expenseIDStr := c.Param("id")
 	expenseID, err := strconv.Atoi(expenseIDStr)
 	if err != nil {

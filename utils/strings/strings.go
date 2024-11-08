@@ -11,5 +11,5 @@ func FormatCurrency(value int) string {
 	decimalStr := strconv.Itoa(decimal)
 	paddedDecimal := fmt.Sprintf("%02s", decimalStr)
 
-	return "€" + strconv.Itoa(whole) + "," + paddedDecimal
+	return "R$" + strconv.Itoa(whole) + "," + paddedDecimal
 }

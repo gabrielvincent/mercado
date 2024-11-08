@@ -14,7 +14,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-var NO_EXPENSES_ERR = errors.New("no expenses found")
+var ErrNoExpenses = errors.New("no expenses found")
 
 func getFirstDayOfMonth(date time.Time) time.Time {
 	return time.Date(
@@ -78,7 +78,6 @@ func getLastDayOfCurrentMonth() time.Time {
 func getGroceryStoresRanking(
 	expenses []expense.Expense,
 ) []expense.GroceryStoresRankingItem {
-
 	groceryStoreToSessions := make(map[string]int)
 	for _, expense := range expenses {
 		if _, ok := groceryStoreToSessions[expense.GroceryStore]; !ok {
@@ -117,7 +116,6 @@ func getPeriodComparison(
 	compareDate time.Time,
 	durationInDays int,
 ) (*stats.PeriodComparison, error) {
-
 	targetDateStart := targetDate.AddDate(0, 0, -durationInDays)
 	compareDateStart := compareDate.AddDate(0, 0, -durationInDays)
 
@@ -128,7 +126,7 @@ func getPeriodComparison(
 	}
 	if len(compareExpenses) == 0 {
 		fmt.Println("--- no expenses found for period")
-		return nil, NO_EXPENSES_ERR
+		return nil, ErrNoExpenses
 	}
 
 	targetExpenses, err := expense.GetExpenses(targetDateStart, targetDate)
@@ -136,7 +134,7 @@ func getPeriodComparison(
 		return nil, err
 	}
 	if len(targetExpenses) == 0 {
-		return nil, NO_EXPENSES_ERR
+		return nil, ErrNoExpenses
 	}
 
 	targetTotal := expense.CalcTotal(targetExpenses)
@@ -193,7 +191,6 @@ func getPrevMonthComparison() (*stats.PeriodComparison, error) {
 		todayLastMonth,
 		todayLastMonth.Day(),
 	)
-
 }
 
 func Index(c echo.Context) error {
@@ -233,9 +230,8 @@ func Index(c echo.Context) error {
 	}
 
 	prevMonthCompare, err := getPrevMonthComparison()
-
 	if err != nil {
-		if err == NO_EXPENSES_ERR {
+		if err == ErrNoExpenses {
 			return utils.Render(
 				c,
 				http.StatusOK,
