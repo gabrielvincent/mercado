@@ -13,6 +13,7 @@ var GROCERY_STORES = []string{
 	"Campeão",
 	"Carrefour",
 	"Casas Pedro",
+	"Feira",
 	"Guanabara",
 	"Hortifruti Genérico",
 	"Hortifruti",
